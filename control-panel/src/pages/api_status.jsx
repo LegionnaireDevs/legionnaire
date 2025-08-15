@@ -25,21 +25,24 @@ export default function API_Status() {
   }
 
   return (
-    <div style={{ padding: 20, fontFamily: 'system-ui, Arial' }}>
-      <h1>Legionnaire API Status</h1>
-      <p>Status: <b style={{color: apiUp ? 'green' : 'crimson'}}>{apiUp ? 'API online' : 'API offline'}</b></p>
-      <p>From Flask: <b>{hello}</b></p>
-      <button onClick={add} style={{ padding: '8px 12px', borderRadius: 6 }}>Add 5 + 7</button>
-      {sum !== null && <p>Sum from API: <b>{sum}</b></p>}
-      <h3>Site Info</h3>
-      {info ? (
-        <ul>
-          <li><b>Name:</b> {info.name}</li>
-          <li><b>Version:</b> {info.version}</li>
-          <li><b>Environment:</b> {info.environment}</li>
-          <li><b>Backend:</b> {info.backend}</li>
-        </ul>
-      ) : <p>Loading…</p>}
-    </div>
+      <div class="w-screen h-screen justify-center items-center flex flex-col">  
+        <div style={{ padding: 20, fontFamily: 'system-ui, Arial' }}>
+          <h1>Legionnaire API Status</h1>
+          <p>Status: <b style={{color: apiUp ? 'green' : 'crimson'}}>{apiUp ? 'API online' : 'API offline'}</b></p>
+          <p>From Flask: <b>{hello}</b></p>
+          <button onClick={add} style={{ padding: '8px 12px', borderRadius: 6 }}>Add 5 + 7</button>
+          {sum !== null && <p>Sum from API: <b>{sum}</b></p>}
+          <h3>Site Info</h3>
+          {info ? (
+            <ul>
+              <li><b>Name:</b> {info.name}</li>
+              <li><b>Version:</b> {info.version}</li>
+              <li><b>Environment:</b> {info.environment}</li>
+              <li><b>Backend:</b> {info.backend}</li>
+            </ul>
+          ) : <p>Loading…</p>}
+        </div>
+      </div>
+
   )
 }
