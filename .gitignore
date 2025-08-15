@@ -1,0 +1,5 @@
+.venv/
+__pycache__/
+*.pyc
+control-panel/node_modules/
+control-panel/dist/
