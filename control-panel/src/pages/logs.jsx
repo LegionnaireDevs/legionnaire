@@ -1,19 +1,23 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 export default function Logs() {
-    const logData = [
-        { id: 1, suspicious: "Failed login attempt from IP 192.168.1.100", os: "Windows 11" },
-        { id: 2, suspicious: "Unusual network traffic detected on port 443", os: "Ubuntu 22.04" },
-        { id: 3, suspicious: "Unauthorized file access in /etc/passwd", os: "CentOS 8" },
-        { id: 4, suspicious: "Multiple authentication failures", os: "macOS Ventura" },
-        { id: 5, suspicious: "Suspicious process spawning: cmd.exe", os: "Windows Server 2022" },
-        { id: 6, suspicious: "Elevated privilege escalation attempt", os: "RHEL 9" },
-        { id: 7, suspicious: "Anomalous database query patterns", os: "Ubuntu 20.04" },
-        { id: 8, suspicious: "Unexpected outbound connection to unknown host", os: "Windows 10" }
-    ];
+    const [results, setResults] = useState([]);
 
-
-   
+    useEffect(() => {
+        async function fetchResults() {
+          try {
+            const res = await fetch("http://localhost:5000/api/logs");
+            const data = await res.json();
+            setResults(data.sus_logs || []); // <-- use the array inside
+          } catch (err) {
+            console.error("Error fetching logs:", err);
+          }
+        }
+      
+        fetchResults();
+        const interval = setInterval(fetchResults, 5000);
+        return () => clearInterval(interval);
+      }, []);
 
     return (
         <div className="min-h-screen w-full relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -60,32 +64,36 @@ export default function Logs() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/10">
-                                {logData.map((log, index) => (
+                                {results.map((log, index) => (
                                     <tr 
-                                        key={log.id} 
-                                        className="hover:bg-white/5 transition-colors duration-200 group"
+                                    key={index} 
+                                    className="hover:bg-white/5 transition-colors duration-200 group"
                                     >
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-500 to-red-500 flex items-center justify-center text-white text-sm font-bold mr-3">
-                                                    {log.id}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className={`text-white font-medium group-hover:text-blue-300 transition-colors `}>
-                                                {log.suspicious}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border `}>
-                                                {log.os}
-                                            </span>
-                                        </td>
-                                        
+                                    {/* ID */}
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="flex items-center">
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-500 to-red-500 flex items-center justify-center text-white text-sm font-bold mr-3">
+                                            {log.id}
+                                        </div>
+                                        </div>
+                                    </td>
+
+                                    {/* Suspicious Activity */}
+                                    <td className="px-6 py-4">
+                                        <div className="text-white font-medium group-hover:text-blue-300 transition-colors">
+                                        {log}
+                                        </div>
+                                    </td>
+
+                                    {/* OS */}
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border">
+                                        {log.os}
+                                        </span>
+                                    </td>
                                     </tr>
                                 ))}
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                 </div>
