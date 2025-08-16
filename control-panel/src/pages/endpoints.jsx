@@ -38,7 +38,7 @@ export default function Endpoints() {
                                 <div className="flex justify-between items-center px-4">
                                     {client.reports}
                                     <button 
-                                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 rounded"
+                                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 rounded"
                                         onClick={() => handleManageClick(client.id)} // Use the navigate function   
                                     >Manage</button>
                                 </div>
