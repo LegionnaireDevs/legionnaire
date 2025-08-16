@@ -427,35 +427,48 @@ def list_sus_logs():
 
 # CLIENT: 
 
+
+#Function saves data to local file in uploads/
 def _save_registered_snapshot():
     out = (UPLOAD_DIR / "registered_clients.json")
     out.write_text(json.dumps(list(REGISTERED_CLIENTS.values()), indent=2), encoding="utf-8")
-# Accept both /register and /api/register so your current client works now,
-# and you can move to /api/register later without changing this server.
+
 @app.post("/register")
 @app.post("/api/register")
 def register_client():
-    data = request.get_json(silent=True) or {}
-    client_id = str(data.get("id") or "").strip()
-    hostname  = str(data.get("hostname") or "").strip()
-    modules   = data.get("modules") if isinstance(data.get("modules"), dict) else None
+    """
+    Register (or refresh) a client.
 
-    if not client_id or not hostname:
+    Expected JSON body:
+      {
+        "id": "<uuid-or-unique-id>",
+        "hostname": "<machine-hostname>"
+      }
+
+    Returns:
+      201 on first registration, 200 on subsequent refreshes.
+    """
+    payload = request.get_json(silent=True) or {}
+    client_id = (payload.get("id") or "").strip()
+    host      = (payload.get("hostname") or "").strip()
+
+    if not client_id or not host:
         return jsonify({"ok": False, "error": "id and hostname required"}), 400
 
-    already = client_id in REGISTERED_CLIENTS
-    REGISTERED_CLIENTS[client_id] = {
-        "id": client_id,
-        "hostname": hostname,
-        "modules": modules or {},
-        "registered_at": datetime.utcnow().isoformat() + "Z",
-    }
+    is_new = client_id not in REGISTERED_CLIENTS
+    REGISTERED_CLIENTS[client_id] = {"id": client_id, "hostname": host}
+
     try:
         _save_registered_snapshot()
-    except Exception as e:
-        app.logger.warning(f"Could not write registered snapshot: {e}")
+    except Exception as exc:
+        app.logger.warning("Could not write registered snapshot: %s", exc)
 
-    return jsonify({"ok": True, "already": already, "client": REGISTERED_CLIENTS[client_id]}), 201 if not already else 200
+    status_code = 201 if is_new else 200
+    return jsonify({
+        "ok": True,
+        "already": not is_new,
+        "client": REGISTERED_CLIENTS[client_id],
+    }), status_code
 
 # Optional: list who’s registered
 @app.get("/api/clients")
