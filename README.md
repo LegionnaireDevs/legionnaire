@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://raw.githubusercontent.com/LegionnaireDevs/legionnaire/blob/main/hackathon%20legionnare.png?raw=true" alt="Legionnaire Logo" width="50%">
+<img src="[https://raw.githubusercontent.com/LegionnaireDevs/legionnaire/blob/main/hackathon%20legionnare.png?raw=true](https://raw.githubusercontent.com/LegionnaireDevs/legionnaire/refs/heads/main/hackathon%20legionnare.png)" alt="Legionnaire Logo" width="50%">
 
 
 <h1>Legionnaire</h1> 
