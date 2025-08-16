@@ -9,126 +9,106 @@ import pandas as pd
 import os, threading, time
 from datetime import datetime
 
-MALWARE_RESULTS = [] 
+MALWARE_RESULTS = []
 SUS_LOGS = []
+ALLOWED_EXTENSIONS = {"csv"}
 REGISTERED_CLIENTS = {}
+UPLOAD_DIR = Path(__file__).parent / "uploads"
+UPLOAD_DIR.mkdir(exist_ok=True)
+CONVERTED_DIR = UPLOAD_DIR / "converted"
+CONVERTED_DIR.mkdir(exist_ok=True)
+
+_converter_started = False
 
 app = Flask(__name__)
 CORS(app)
+app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 
-# --- config ---
-UPLOAD_DIR = Path(__file__).parent / "uploads"
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-
-ALLOWED_EXTENSIONS = {"csv"}
-app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024  # 100 MB cap
-
-def allowed_file(name: str) -> bool:
-    return "." in name and name.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def unique_target(name: str) -> Path:
-    """Preserve filename; if taken, append ' (n)' before extension."""
-    safe = secure_filename(name) or "upload.csv"
-    target = UPLOAD_DIR / safe
-    if not target.exists():
-        return target
-    stem, suffix = target.stem, target.suffix
-    i = 1
-    while True:
-        candidate = UPLOAD_DIR / f"{stem} ({i}){suffix}"
-        if not candidate.exists():
-            return candidate
-        i += 1
 
 @app.get("/api/health")
 def health():
     return jsonify({"status": "ok"})
 
-@app.post("/")
+
+@app.post("/api/flow")
 def receive_csv():
     saved = []
 
-    # Case A: multipart/form-data (likely when requests sees a file-like in data)
-    # Example: requests.post(..., data={ "eth0.csv": open("eth0.csv", "rb") })
     if request.files:
+        sender_id = (request.headers.get("ID") or "").strip()
         for field_name, storage in request.files.items():
             orig = storage.filename or field_name
             if not allowed_file(orig):
                 continue
-            target = unique_target(orig)
+            target = unique_target(orig, sender_id)
             storage.save(target)
-            convert_if_needed(target)
+            convert_csv(target, sender_id)
             saved.append(target.name)
 
-    # Case B: urlencoded form (string body in request.form)
-    elif request.form:
-        charset = request.mimetype_params.get("charset", "utf-8")
-        for field_name in request.form.keys():
-            if not allowed_file(field_name):
-                continue
-            content_str = request.form.get(field_name, "")
-            data_bytes = content_str.encode(charset, errors="ignore")
-            target = unique_target(field_name)
-            with target.open("wb") as f:
-                f.write(data_bytes)
-            saved.append(target.name)
-            convert_if_needed(target)
-
-    # Case C: raw body + header (fallback)
     else:
         body = request.get_data()
+        sender_id = (request.headers.get("ID") or "").strip()
         xname = (request.headers.get("X-Filename") or "").strip()
         if body and xname and allowed_file(xname):
-            target = unique_target(xname)
+            target = unique_target(xname, sender_id)
             with target.open("wb") as f:
                 f.write(body)
             saved.append(target.name)
-            convert_if_needed(target)
+            convert_csv(target, sender_id)
 
     if not saved:
         return jsonify({"ok": False, "error": "No CSV received"}), 400
     return jsonify({"ok": True, "saved": saved}), 201
 
+
 @app.get("/api/uploads")
 def list_uploads():
-    files = sorted(p.name for p in UPLOAD_DIR.glob("*.csv"))
+    """Lists all uploaded CSV files from all sender directories."""
+    files = sorted(str(p.relative_to(UPLOAD_DIR)) for p in UPLOAD_DIR.rglob("*.csv"))
     return jsonify({"files": files})
 
-@app.get("/api/uploads/<name>")
+
+@app.get("/api/uploads/<path:name>")
 def download_upload(name):
     return send_from_directory(UPLOAD_DIR, name, as_attachment=True)
+
 
 @app.get("/api/hello")
 def hello():
     return jsonify({"message": "Hello from Flask API, my name is Sean"})
+
 
 @app.post("/api/add")
 def add():
     data = request.get_json(force=True) or {}
     return jsonify({"result": data.get("a", 0) + data.get("b", 0)})
 
+
 @app.get("/api/site-info")
 def site_info():
-    return jsonify({
-        "name": "Legionnaire Control Panel",
-        "version": "0.1.0",
-        "environment": "development",
-        "backend": "Flask"
-    })
+    return jsonify(
+        {
+            "name": "Legionnaire Control Panel",
+            "version": "0.1.0",
+            "environment": "development",
+            "backend": "Flask",
+        }
+    )
+
 
 @app.post("/api/hash-report")
 def hash_report():
+    global UPLOAD_DIR
     payload = request.get_json(silent=True) or {}
     if not payload:
         return jsonify({"ok": False, "error": "no data"}), 400
 
-    out = (UPLOAD_DIR / "hash_reports.jsonl")
+    out = UPLOAD_DIR / "hash_reports.jsonl"
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("a", encoding="utf-8") as f:
         f.write(json.dumps(payload) + "\n")
 
     return jsonify({"ok": True})
-
 
 
 @app.post("/api/malware-result")
@@ -142,24 +122,117 @@ def malware_result():
         "hash": payload.get("hash") or "",
         "results": payload.get("results") or {},
         "received_at": datetime.utcnow().isoformat() + "Z",
+        "id": payload.get("id") or "",
     }
     MALWARE_RESULTS.append(item)
     app.logger.info(f"Saved malware result for {item['hash']}")
     return jsonify({"ok": True}), 201
+
 
 @app.get("/api/malware-results")
 def malware_results():
     return jsonify(MALWARE_RESULTS)
 
 
+@app.post("/api/logs")
+def create_sus_log():
+    msg = None
 
-CONVERTED_DIR = UPLOAD_DIR / "converted"
-CONVERTED_DIR.mkdir(parents=True, exist_ok=True)
+    if request.is_json:
+        payload = request.get_json(silent=True)
+        if isinstance(payload, dict):
+            val = payload.get("sus_log")
+            id = payload.get("id") or ""
+            if isinstance(val, str):
+                msg = val.strip()
 
-def convert_if_needed(csv_path: Path):
+    if not msg:
+        return jsonify({"ok": False, "error": "sus_log string required"}), 400
+
+    SUS_LOGS.append(msg)
+    with (UPLOAD_DIR / "sus_logs.txt").open("a", encoding="utf-8") as f:
+        f.write(msg + "\n")
+
+    return jsonify({"ok": True}), 201
+
+
+@app.get("/api/logs")
+def list_sus_logs():
+    return jsonify({"sus_logs": SUS_LOGS})
+  
+  
+@app.post("/api/register")
+def register_client():
+    """
+    Register (or refresh) a client.
+
+    Expected JSON body:
+      {
+        "id": "<uuid-or-unique-id>",
+        "hostname": "<machine-hostname>"
+      }
+
+    Returns:
+      201 on first registration, 200 on subsequent refreshes.
+    """
+    payload = request.get_json(silent=True) or {}
+    client_id = (payload.get("id") or "").strip()
+    host      = (payload.get("hostname") or "").strip()
+
+    if not client_id or not host:
+        return jsonify({"ok": False, "error": "id and hostname required"}), 400
+
+    is_new = client_id not in REGISTERED_CLIENTS
+    REGISTERED_CLIENTS[client_id] = {"id": client_id, "hostname": host}
+
+    try:
+        _save_registered_snapshot()
+    except Exception as exc:
+        app.logger.warning("Could not write registered snapshot: %s", exc)
+
+    status_code = 201 if is_new else 200
+    return jsonify({
+        "ok": True,
+        "already": not is_new,
+        "client": REGISTERED_CLIENTS[client_id],
+    }), status_code
+
+@app.get("/api/clients")
+def list_clients():
+    return jsonify(list(REGISTERED_CLIENTS.values()))
+
+
+def allowed_file(name: str) -> bool:
+    return "." in name and name.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def unique_target(name: str, sender_id: str) -> Path:
+    """Creates a unique path for an upload, inside a sender-specific directory."""
+    safe = secure_filename(name) or "upload.csv"
+    sender_dir = UPLOAD_DIR / (sender_id or "_unknown_sender")
+    sender_dir.mkdir(parents=True, exist_ok=True)
+
+    target = sender_dir / safe
+    if not target.exists():
+        return target
+
+    stem, suffix = target.stem, target.suffix
+    i = 1
+    while True:
+        candidate = sender_dir / f"{stem}_{i}{suffix}"
+        if not candidate.exists():
+            return candidate
+        i += 1
+
+
+def convert_csv(csv_path: Path, sender_id: str):
     """Convert csv_path -> converted/<name>_converted.csv (once)."""
     try:
-        out = CONVERTED_DIR / f"{csv_path.stem}_converted.csv"
+        sender_out_dir = CONVERTED_DIR / (sender_id or "_unknown_sender")
+        sender_out_dir.mkdir(parents=True, exist_ok=True)
+
+        out = sender_out_dir / f"{csv_path.stem}.csv"
+
         if out.exists():
             return
         convert_csv_format(str(csv_path), str(out))
@@ -341,9 +414,7 @@ def convert_csv_format(input_filepath, output_filepath):
 
     try:
         df = pd.read_csv(input_filepath)
-
         df.rename(columns=header_mapping, inplace=True)
-
         df["FwdHeaderLength.1"] = df["FwdHeaderLength"]
 
         final_column_order = new_column_order[:]  # Make a copy
@@ -352,11 +423,9 @@ def convert_csv_format(input_filepath, output_filepath):
         )
 
         df_converted = df[final_column_order]
-
         df_converted.to_csv(output_filepath, index=False)
 
         print(f"Successfully converted '{input_filepath}' to '{output_filepath}'")
-
     except FileNotFoundError:
         print(f"Error: The file '{input_filepath}' was not found.")
     except KeyError as e:
@@ -364,119 +433,28 @@ def convert_csv_format(input_filepath, output_filepath):
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
 
+
 def _converter_loop():
     while True:
         try:
             for p in UPLOAD_DIR.glob("*.csv"):
-                convert_if_needed(p)
+                convert_csv(p)
         except Exception as e:
             app.logger.exception(f"Background converter loop error: {e}")
-        time.sleep(5)  # scan every 5s
+        time.sleep(5)
 
-_converter_started = False
+
 def _start_background_threads_once():
     global _converter_started
     if not _converter_started:
         threading.Thread(target=_converter_loop, daemon=True).start()
         _converter_started = True
 
+
 def _kickoff_bg():
     _start_background_threads_once()
 
-
-@app.post("/api/logs")
-def create_sus_log():
-    msg = None
-
-    # Prefer JSON: {"sus_log": "…"} or raw JSON string "…"
-    if request.is_json:
-        payload = request.get_json(silent=True)
-        if isinstance(payload, str):
-            msg = payload.strip()
-        elif isinstance(payload, dict):
-            val = payload.get("sus_log")
-            if isinstance(val, str):
-                msg = val.strip()
-
-    # Fallback: form-encoded sus_log=...
-    if msg is None and request.form:
-        val = request.form.get("sus_log")
-        if isinstance(val, str):
-            msg = val.strip()
-
-    # Fallback: raw text/plain body
-    if msg is None:
-        raw = request.get_data(as_text=True)
-        if raw:
-            msg = raw.strip()
-
-    if not msg:
-        return jsonify({"ok": False, "error": "sus_log string required"}), 400
-
-    SUS_LOGS.append(msg)
-    # persist each line to a file for durability
-    with (UPLOAD_DIR / "sus_logs.txt").open("a", encoding="utf-8") as f:
-        f.write(msg + "\n")
-
-    return jsonify({"ok": True}), 201
-
-@app.get("/api/logs")
-def list_sus_logs():
-    return jsonify({"sus_logs": SUS_LOGS})
-
-
-# CLIENT: 
-
-
-#Function saves data to local file in uploads/
-def _save_registered_snapshot():
-    out = (UPLOAD_DIR / "registered_clients.json")
-    out.write_text(json.dumps(list(REGISTERED_CLIENTS.values()), indent=2), encoding="utf-8")
-
-@app.post("/register")
-@app.post("/api/register")
-def register_client():
-    """
-    Register (or refresh) a client.
-
-    Expected JSON body:
-      {
-        "id": "<uuid-or-unique-id>",
-        "hostname": "<machine-hostname>"
-      }
-
-    Returns:
-      201 on first registration, 200 on subsequent refreshes.
-    """
-    payload = request.get_json(silent=True) or {}
-    client_id = (payload.get("id") or "").strip()
-    host      = (payload.get("hostname") or "").strip()
-
-    if not client_id or not host:
-        return jsonify({"ok": False, "error": "id and hostname required"}), 400
-
-    is_new = client_id not in REGISTERED_CLIENTS
-    REGISTERED_CLIENTS[client_id] = {"id": client_id, "hostname": host}
-
-    try:
-        _save_registered_snapshot()
-    except Exception as exc:
-        app.logger.warning("Could not write registered snapshot: %s", exc)
-
-    status_code = 201 if is_new else 200
-    return jsonify({
-        "ok": True,
-        "already": not is_new,
-        "client": REGISTERED_CLIENTS[client_id],
-    }), status_code
-
-# Optional: list who’s registered
-@app.get("/api/clients")
-def list_clients():
-    return jsonify(list(REGISTERED_CLIENTS.values()))
-
 if __name__ == "__main__":
-    # Keep localhost; change host to "0.0.0.0" if you need LAN access
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
         _kickoff_bg()
     app.run(host="127.0.0.1", port=5000, debug=True, threaded=True)

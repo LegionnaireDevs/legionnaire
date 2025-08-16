@@ -22,6 +22,7 @@ db = client["processes_db"]
 collection = db["process_hashes"]
 collection.create_index("sha256", unique=True)
 
+
 # Optimised SHA-256 using 1MB chunks
 def getfileHash(file_path, algo="sha256"):
     hashFunc = hashlib.new(algo)
@@ -34,12 +35,13 @@ def getfileHash(file_path, algo="sha256"):
     except (FileNotFoundError, PermissionError):
         return None
 
-def processList():
+
+def processList(id):
     processInfo = []
-    for proc in psutil.process_iter(['pid', 'name', 'exe', 'username']):
+    for proc in psutil.process_iter(["pid", "name", "exe", "username"]):
         try:
-            exe = proc.info['exe']
-            username = proc.info['username']
+            exe = proc.info["exe"]
+            username = proc.info["username"]
 
             # Skip system processes
             if username and username.startswith("_"):
@@ -52,7 +54,7 @@ def processList():
                     if not collection.find_one({"sha256": file_hash}):
                         # Insert hash if not already present
                         print(file_hash)
-                        programanalysis.queryHash(file_hash)
+                        programanalysis.queryHash(file_hash, id)
                         collection.insert_one({"sha256": file_hash})
 
         except (psutil.NoSuchProcess, psutil.AccessDenied):
@@ -61,7 +63,8 @@ def processList():
     print("Process list checked successfully")
     return processInfo
 
+
 if __name__ == "__main__":
-    hashes = processList()
+    hashes = processList(0)
     for p in hashes:
         print(f"{p['pid']:5} {p['name']:<25} {p['username']} {p['sha256']}")

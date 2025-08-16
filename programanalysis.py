@@ -7,18 +7,14 @@ import json
 
 API_URL = "http://127.0.0.1:5000/api/malware-result"
 
-def queryHash(hash):
+
+def queryHash(hash, id):
     # Queries database using hash.
     url = "https://mb-api.abuse.ch/api/v1/"
 
-    headers = {
-        "Auth-Key": "dc1a5a3f7037735e8acd87137a879237a032bedb1f684aa7"
-    }
+    headers = {"Auth-Key": "dc1a5a3f7037735e8acd87137a879237a032bedb1f684aa7"}
 
-    data = {
-        "query": "get_info",
-        "hash": hash
-    }
+    data = {"query": "get_info", "hash": hash}
 
     try:
         response = requests.post(url, headers=headers, data=data, timeout=10)
@@ -27,9 +23,10 @@ def queryHash(hash):
         _post_to_api(hash, {"error": f"mb_request_failed: {e}"})
         return
 
-    analyseResults(response, hash)
+    analyseResults(response, hash, id)
 
-def analyseResults(response, sha256):
+
+def analyseResults(response, sha256, id):
     # Analyses JSON result. Posts a dictionary to Flask whether found or not.
     try:
         results = response.json()
@@ -37,10 +34,10 @@ def analyseResults(response, sha256):
         print("Response is not valid JSON")
         _post_to_api(sha256, {"error": "invalid_json"})
         return
-    
+
     if results.get("query_status") == "hash_not_found":
         print("Hash is either not in database, or safe.")
-        _post_to_api(sha256, {"query_status": "hash_not_found"})
+        _post_to_api(sha256, {"query_status": "hash_not_found"}, id)
         return
 
     entry = results["data"][0]
@@ -52,7 +49,7 @@ def analyseResults(response, sha256):
         "FileScan-IO": "verdict",
         "Spamhaus HBL": "detection",
         "vxCube": "verdict",
-        "ANY.RUN": "verdict"
+        "ANY.RUN": "verdict",
     }
 
     for vendor, field in vendors.items():
@@ -61,23 +58,25 @@ def analyseResults(response, sha256):
             if vendor == "ANY.RUN":  # list special-case
                 resultData[vendor] = data[0].get(field) if data else None
             else:
-                resultData[vendor if vendor != "FileScan-IO" else "FileScan"] = data.get(field)
+                resultData[vendor if vendor != "FileScan-IO" else "FileScan"] = (
+                    data.get(field)
+                )
             if vendor == "ReversingLabs":
                 print("Potential Threat Name:", data.get("threat_name"))
 
     print(resultData)
-    _post_to_api(sha256, resultData)
+    _post_to_api(sha256, resultData, id)
 
-def _post_to_api(sha256, resultData):
+
+def _post_to_api(sha256, resultData, id):
     try:
         r = requests.post(
-            API_URL,
-            json={"hash": sha256, "results": resultData},
-            timeout=5
+            API_URL, json={"hash": sha256, "results": resultData, "id": id}, timeout=5
         )
         print(f"Posted to API: {r.status_code} {r.text[:120]}")
     except Exception as e:
         print(f"Failed to send to API: {e}")
+
 
 if __name__ == "__main__":
     # Only runs when you execute programanalysis.py directly
