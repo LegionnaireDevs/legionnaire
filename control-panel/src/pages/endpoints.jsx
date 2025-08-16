@@ -38,7 +38,7 @@ export default function Endpoints() {
             <div className="absolute bottom-1/6 left-3/5 w-1 h-1 bg-white rounded-full animate-ping delay-600"></div>
             {/* Header and Button Container */}
             <div className="flex justify-between items-center w-full max-w-4xl mb-8">
-                <h1 className="text-3xl font-bold underline">Endpoints List</h1>
+                <h1 className="text-white text-lg font-semibold mb-8">Endpoints List</h1>
                 <button
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                     onClick={handleNewClient}

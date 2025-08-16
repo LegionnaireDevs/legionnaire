@@ -21,7 +21,7 @@ export default function Statistics() {
 
     return (
         <div className="min-h-screen w-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-            <h1 className="text-3xl font-bold underline"> Statistics Page </h1>
+            <h1 className="text-white text-lg font-semibold mb-8">Statistics</h1>
             
             {/* Floating particles */}
             <div className="absolute top-16 left-1/3 w-1.5 h-1.5 bg-white rounded-full animate-pulse delay-300"></div>
