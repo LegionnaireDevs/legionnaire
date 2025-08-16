@@ -1,4 +1,4 @@
-![Legionnaire Logo](https://raw.githubusercontent.com/LegionnaireDevs/legionnaire/b8d864c44656f320bf228d93e103714ec98054d2/legionnaire%20git.png?raw=true)
+<img src="https://raw.githubusercontent.com/LegionnaireDevs/legionnaire/b8d864c44656f320bf228d93e103714ec98054d2/legionnaire%20git.png?raw=true" alt="Legionnaire Logo" width="50%">
 
 
 # Legionnaire
