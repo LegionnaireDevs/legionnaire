@@ -1,4 +1,3 @@
-
 import React from "react";
 
 export default function Logs() {
@@ -14,15 +13,17 @@ export default function Logs() {
     ];
 
     return (
-        <div className="min-h-screen w-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-            <div className="p-6 w-screen h-screen flex flex-col items-start justify-start">
-                <h1 className="text-3xl font-bold text-white mb-2">System Logs</h1>
-                <p className="text-xl text-gray-300 mb-8">Analysis of system logs, suspicious logs will be shown here.</p>
+        <div className="min-h-screen max-h-screen w-full max-w-full relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+            <div className="p-6 h-full flex flex-col">
+                <div className="w-full max-w-7xl mx-auto mb-8">
+                    <h1 className="text-3xl font-bold text-white mb-2">System Logs</h1>
+                    <p className="text-xl text-gray-300">Analysis of system logs, suspicious logs will be shown here.</p>
+                </div>
                 
-                <div className="w-full max-w-7xl bg-black/20 backdrop-blur-lg rounded-xl border border-white/10 shadow-2xl overflow-hidden">
-                    <div className="overflow-x-auto">
+                <div className="w-full max-w-7xl mx-auto bg-black/20 backdrop-blur-lg rounded-xl border border-white/10 shadow-2xl overflow-hidden flex-1">
+                    <div className="overflow-x-auto h-full">
                         <table className="w-full">
-                            <thead className="bg-gradient-to-r from-purple-600/30 to-blue-600/30 border-b border-white/10">
+                            <thead className="bg-gradient-to-r from-purple-600/30 to-blue-600/30 border-b border-white/10 sticky top-0">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
                                         ID

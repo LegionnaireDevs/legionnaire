@@ -19,7 +19,7 @@ export default function Endpoints() {
     ]);
 
     return (
-        <div className="min-h-screen w-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="min-h-screen max-h-screen w-full max-w-full relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
             {/* Floating particles */}
             <div className="absolute top-16 left-1/3 w-1.5 h-1.5 bg-white rounded-full animate-pulse delay-300"></div>
             <div className="absolute bottom-32 right-1/3 w-2.5 h-2.5 bg-white rounded-full animate-bounce delay-1200"></div>
@@ -37,9 +37,9 @@ export default function Endpoints() {
             <div className="absolute top-1/6 right-1/4 w-1.5 h-1.5 bg-white rounded-full animate-bounce delay-800"></div>
             <div className="absolute bottom-1/6 left-3/5 w-1 h-1 bg-white rounded-full animate-ping delay-600"></div>
 
-            <div className="p-6 w-screen h-screen flex flex-col items-start justify-start">
+            <div className="p-6 h-full flex flex-col">
                 {/* Header and Button Container */}
-                <div className="flex justify-between items-center w-full max-w-7xl mb-8">
+                <div className="flex justify-between items-center w-full max-w-7xl mx-auto mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-white mb-2">Endpoints List</h1>
                         <p className="text-xl text-gray-300">Manage and monitor your system endpoints.</p>
@@ -53,10 +53,10 @@ export default function Endpoints() {
                 </div>
 
                 {/* Endpoints Table */}
-                <div className="w-full max-w-7xl bg-black/20 backdrop-blur-lg rounded-xl border border-white/10 shadow-2xl overflow-hidden">
-                    <div className="overflow-x-auto">
+                <div className="w-full max-w-7xl mx-auto bg-black/20 backdrop-blur-lg rounded-xl border border-white/10 shadow-2xl overflow-hidden flex-1">
+                    <div className="overflow-x-auto h-full">
                         <table className="w-full">
-                            <thead className="bg-gradient-to-r from-purple-600/30 to-blue-600/30 border-b border-white/10">
+                            <thead className="bg-gradient-to-r from-purple-600/30 to-blue-600/30 border-b border-white/10 sticky top-0">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
                                         Endpoint Name
