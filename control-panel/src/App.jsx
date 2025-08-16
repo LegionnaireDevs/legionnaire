@@ -9,6 +9,7 @@ import Endpoints from './pages/endpoints.jsx';
 import Manage_Client from './pages/manage_client.jsx';
 import Dashboard from './pages/dashboard.jsx';
 import NewClient from './pages/new_client.jsx';
+import Login from './pages/login.jsx';
 
 const App = () => {
 
@@ -18,6 +19,7 @@ const App = () => {
         <Routes>
           <Route path ="/" element = {<Home />} />
           <Route path ="/dashboard" element = {<Dashboard />} />
+          <Route path ="/login" element = {<Login />} />
           <Route path ="/api_status" element = {<API_Status />} />
           <Route path ="/statistics" element = {<Statistics />} />
           <Route path ="/endpoints" element = {<Endpoints />} />

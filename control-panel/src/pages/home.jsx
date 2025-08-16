@@ -140,9 +140,7 @@ const Home = () => {
           isVisible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
         }`}>
           <div className="flex items-center space-x-2 text-slate-400 animate-bounce">
-            <div className="w-6 h-1 bg-gradient-to-r from-transparent via-slate-400 to-transparent rounded-full"></div>
-            <span className="text-sm tracking-wider">EXPLORE NAVIGATION</span>
-            <div className="w-6 h-1 bg-gradient-to-r from-transparent via-slate-400 to-transparent rounded-full"></div>
+            
           </div>
         </div>
       </div>

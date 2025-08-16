@@ -5,7 +5,6 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
 
-  // Toggle dark mode class on <html>
   useEffect(() => {
     const root = window.document.documentElement;
     if (darkMode) {
@@ -17,41 +16,47 @@ export default function Navbar() {
 
   const links = [
     { name: "Home", path: "/" },
-    { name: "Dashboard", path: "/dashboard"},
+    { name: "Dashboard", path: "/dashboard" }
   ];
 
   return (
     <nav className="bg-black-900 text-white fixed w-full z-50 shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="flex items-center h-16 space-x-8">
-          {/* Logo */}
-          <NavLink to="/" className="text-2xl font-bold tracking-tight !text-white">
-            Legionnaire.
-          </NavLink>
+        <div className="flex items-center h-16 justify-between">
+          {/* Left: Logo + links */}
+          <div className="flex items-center space-x-8">
+            {/* Logo */}
+            <NavLink to="/" className="text-2xl font-bold tracking-tight !text-white">
+              Legionnaire.
+            </NavLink>
 
-          {/* Desktop links */}
-          <ul className="hidden md:flex space-x-6">
-            {links.map((link) => (
-              <li key={link.name}>
-                <NavLink
-                  to={link.path}
-                  className={({ isActive }) =>
-                    `block py-2 px-3 rounded transition !text-white visited:!text-white hover:!text-white ${
-                      isActive ? "font-bold" : "font-bold"
-                    }`
-                  }
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {link.name}
-</NavLink>
-              </li>
-            ))}
-          </ul>
+            {/* Desktop links */}
+            <ul className="hidden md:flex space-x-6">
+              {links.map((link) => (
+                <li key={link.name}>
+                  <NavLink
+                    to={link.path}
+                    className={({ isActive }) =>
+                      `block py-2 px-3 rounded transition !text-white ${
+                        isActive ? "font-bold" : "font-normal"
+                      }`
+                    }
+                  >
+                    {link.name}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-          {/* Right controls */}
+          {/* Right: Login button */}
           <div className="flex items-center gap-4">
-            {/* Dark mode toggle */}
-         
+            <NavLink
+              to="/login"
+              className="bg-purple-600 hover:bg-purple-700 !text-white font-bold px-4 py-2 rounded transition"
+            >
+              Login
+            </NavLink>
 
             {/* Mobile menu button */}
             <button
@@ -71,7 +76,7 @@ export default function Navbar() {
       {/* Mobile Menu */}
       {menuOpen && (
         <ul className="md:hidden bg-gray-800 border-t border-gray-700 space-y-1 px-4 py-3">
-          {links.map((link) => (
+          {links.concat({ name: "Login", path: "/login" }).map((link) => (
             <li key={link.name}>
               <NavLink
                 to={link.path}
