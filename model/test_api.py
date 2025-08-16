@@ -1,6 +1,6 @@
 import model_predict as mp
 
-data = 'model/data/converted_data3.csv'
+data = 'model/data/converted_data5.csv'
 
 predict = mp.predict(data)
 

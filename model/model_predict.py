@@ -3,7 +3,7 @@ import xgboost as xg
 import matplotlib.pyplot as plt
 
 model = xg.XGBClassifier()
-model.load_model('model/models/run8_bi.ubj')
+model.load_model('model/models/run9_bi.ubj')
 
 def predict(data_fp):
     data = pd.read_csv(data_fp)
