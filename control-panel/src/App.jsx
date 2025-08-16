@@ -11,6 +11,8 @@ import Dashboard from './pages/dashboard.jsx';
 import NewClient from './pages/new_client.jsx';
 import Login from './pages/login.jsx';
 import Logs from './pages/logs.jsx';
+import ProgramAnalysis from './pages/program_analysis.jsx';
+import Network from './pages/network.jsx';
 
 const App = () => {
 
@@ -27,6 +29,9 @@ const App = () => {
           <Route path ="/manage_client/:clientID" element = {<Manage_Client />} />
           <Route path ="/new_client" element = {<NewClient />} />
           <Route path ="/logs" element = {<Logs />} />
+          <Route path ="/network" element = {<Network />} />
+          <Route path ="/program_analysis" element = {<ProgramAnalysis />} />
+
         </Routes>
     </div>
     

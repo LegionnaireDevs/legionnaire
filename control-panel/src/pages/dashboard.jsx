@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // <-- import useNavigate
-import StatCard from "../components/StatCard.jsx";
 import Endpoints from "../pages/endpoints.jsx"; 
-import Statistics from "../pages/statistics.jsx"; 
-import Logs from "../pages/logs.jsx";
+import Statistics from "../pages/statistics.jsx";  
 import { auth } from "../firebase"; 
 import { signOut } from "firebase/auth";
 
+import Logs from "../pages/logs.jsx";
+import ProgramAnalysis from "./program_analysis.jsx";
+import Network from "./network.jsx";
 
 
 export default function Dashboard() {
@@ -34,8 +35,10 @@ export default function Dashboard() {
 
     const menuItems = [
         { id: 'statistics', label: 'Statistics'},
-        { id: 'endpoints', label: 'Endpoints'},
-        { id: 'logs', label: 'All Logs'}
+        { id: 'program_analysis', label: 'Program Analysis'},
+        { id: 'network', label: 'Network'},
+        { id: 'logs', label: 'Logs'},
+        { id: 'endpoints', label: 'Endpoints'}
     ];
     
 
@@ -47,6 +50,10 @@ export default function Dashboard() {
                 return <Endpoints />;
             case 'logs':
                 return <Logs/>;
+            case 'program_analysis': 
+                return <ProgramAnalysis/>;
+            case 'network':
+                return <Network/>;
             default:
                 return <Statistics />;
         }
