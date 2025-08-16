@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 export default function Manage_Client() {
     const params = useParams();
@@ -7,6 +7,13 @@ export default function Manage_Client() {
 
     const [client, setClient] = useState(null);
     const [reports, setReports] = useState([]);
+
+    const navigate = useNavigate();
+
+    const handleBack = () => {
+        navigate('/dashboard'); 
+    }
+
 
     // Placeholder data to be replaced with actual API calls.
     const clientData = {
@@ -46,8 +53,14 @@ export default function Manage_Client() {
 
     return (
         <div className="min-h-screen w-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-
+            
             <div className="p-20 w-screen h-screen flex flex-col items-center">
+                
+                <button
+                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    onClick={handleBack}
+            >Back</button>
+
                 <h1 className="pb-5 text-3xl font-bold underline">Manage Client: {client.name}</h1>
                 <p className="mb-8 text-lg text-white">IP Address: {client.ip}</p>
 
