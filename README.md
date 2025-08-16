@@ -60,11 +60,11 @@ https://bazaar.abuse.ch/browse/
 ## Appendix
 
 
-SysLog Rules
+#### SysLog Rules
 
 https://github.com/ossec/ossec-hids/blob/f6502012b7380208db81f82311ad4a1994d39905/etc/rules/syslog_rules.xml
 
-ChatGPT
+#### ChatGPT
 
 https://chatgpt.com/
 
