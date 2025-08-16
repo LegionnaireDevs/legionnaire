@@ -1,4 +1,5 @@
 import platform
+import os
 import subprocess
 
 # Program will need to be run as administrator
@@ -27,6 +28,10 @@ def DeleteFile(location, recurse):
     recurse:    True or 1 to recursively delete.
     """
     userOS = platform.system()
+
+    if not os.path.exists(location):
+        InvalidMessage("path file", location)
+        return
 
     if recurse:
         cmd = f"rm -r {location}"
@@ -59,15 +64,19 @@ def CreateFirewallRule(direction, source, dest, action, port, protocol):
 
     # Can be expanded for other operating systems.
     if userOS == "Linux":
-        VerifyIptables(direction, action, protocol)
-        cmd = f"iptables -t filter -A {direction} -s {source} -d {dest} -p {protocol} --dport {port} -j {action}"
+        if VerifyIptables(direction, action, protocol):
+            cmd = f"iptables -t filter -A {direction} -s {source} -d {dest} -p {protocol} --dport {port} -j {action}"
+        else:
+            return
     elif userOS == "Windows":
-        VerifyNetsh(direction, action, protocol)
-        name = action + "_" + dest
-        cmd = (
-            f"netsh advfirewall firewall add rule name={name}"
-            f"dir={direction} action={action} protocol={protocol} localip={source} remoteip={dest}"
-        )
+        if VerifyNetsh(direction, action, protocol):
+            name = action + "_" + dest
+            cmd = (
+                f"netsh advfirewall firewall add rule name={name}"
+                f"dir={direction} action={action} protocol={protocol} localip={source} remoteip={dest}"
+            )
+        else:
+            return
     subprocess.run(cmd, shell=True)
 
 
@@ -75,24 +84,28 @@ def VerifyIptables(direction, action, protocol):
     """
     Verifies parameters for iptables.
     """
+    flag = True
     if direction != "INPUT" and direction != "OUTPUT":
-        InvalidMessage("direction", {direction})
+        flag = InvalidMessage("direction", {direction})
     if action != "ACCEPT" and action != "DROP":
-        InvalidMessage("action", {action})
+        flag = InvalidMessage("action", {action})
     if protocol != "tcp" and protocol != "udp":
-        InvalidMessage("protocol", {protocol})
+        flag = InvalidMessage("protocol", {protocol})
+    return flag
 
 
 def VerifyNetsh(direction, action, port, protocol):
     """
     Verifies parameters for windows netsh.
     """
+    flag = True
     if direction != "in" and direction != "out":
-        InvalidMessage("direction", {direction})
+        flag = InvalidMessage("direction", {direction})
     if action != "allow" and action != "block":
-        InvalidMessage("action", {action})
+        flag = InvalidMessage("action", {action})
     if protocol != "tcp" and protocol != "udp":
-        InvalidMessage("protocol", {protocol})
+        flag = InvalidMessage("protocol", {protocol})
+    return flag
 
 
 def InvalidMessage(errType, received):
@@ -100,3 +113,4 @@ def InvalidMessage(errType, received):
     Prints invalid message.
     """
     print(f"Invalid {errType}. Received {received}")
+    return False
