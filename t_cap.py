@@ -18,10 +18,9 @@ def sniff(interface):
     stopping, flushing, and restarting every 30 seconds. Data is appended
     to a master CSV file for the interface.
     """
-    safe_interface_name = "".join(
-        c for c in interface if c.isalnum() or c in (" ", "_", "-")
-    ).rstrip()
-    safe_interface_name = safe_interface_name.replace(" ", "_")
+
+    safe_interface_name = "".join(c for c in interface if c.isalnum() or c in (' ', '_', '-')).rstrip()
+    safe_interface_name = safe_interface_name.replace(' ', '_')
 
     print(f"Starting network traffic analysis on {interface}...")
     if not os.path.exists(OUTPUT_DIR):

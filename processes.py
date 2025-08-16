@@ -13,10 +13,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-user = quote_plus(os.getenv("MONGO_USER"))
-password = quote_plus(os.getenv("MONGO_PASS"))
+# user = quote_plus(os.getenv("MONGO_USER"))
+# password = quote_plus(os.getenv("MONGO_PASS"))
 
-MONGO_URI = f"mongodb+srv://{user}:{password}@cluster0.r3irld0.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+MONGO_URI = f"mongodb+srv://process_user:Legionnaire@cluster0.r3irld0.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 client = MongoClient(MONGO_URI)
 db = client["processes_db"]
 collection = db["process_hashes"]
