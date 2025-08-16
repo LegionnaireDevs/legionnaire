@@ -93,7 +93,7 @@ export default function Endpoints() {
                                             className="hover:bg-white/5 transition-colors duration-200 group"
                                         >
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-500 to-red-500 flex items-center justify-center text-white text-sm font-bold mr-3">
+                                                <div className="w-8 h-8  flex items-center justify-center text-white text-sm font-bold mr-3">
                                                     {client.id}
                                                 </div>
                                             </td>
