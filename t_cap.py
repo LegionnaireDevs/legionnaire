@@ -1,7 +1,7 @@
 import time
 import requests
 import os
-import ifcfg
+from scapy.all import get_if_list
 import json
 import multiprocessing
 import csv
@@ -18,12 +18,17 @@ def sniff(interface):
     stopping, flushing, and restarting every 30 seconds. Data is appended
     to a master CSV file for the interface.
     """
+    safe_interface_name = "".join(
+        c for c in interface if c.isalnum() or c in (" ", "_", "-")
+    ).rstrip()
+    safe_interface_name = safe_interface_name.replace(" ", "_")
+
     print(f"Starting network traffic analysis on {interface}...")
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
 
-    master_file_path = os.path.join(OUTPUT_DIR, f"{interface}.csv")
-    temp_file_path = os.path.join(OUTPUT_DIR, f"{interface}_temp.csv")
+    master_file_path = os.path.join(OUTPUT_DIR, f"{safe_interface_name}.csv")
+    temp_file_path = os.path.join(OUTPUT_DIR, f"{safe_interface_name}_temp.csv")
 
     try:
         while True:
@@ -49,7 +54,7 @@ def sniff(interface):
             session.flush_flows()
             print(f"Flows flushed to temporary file: {temp_file_path}")
 
-            if os.path.exists(temp_file_path):
+            if os.path.exists(temp_file_path) and os.path.getsize(temp_file_path) > 0:
                 write_header = (
                     not os.path.exists(master_file_path)
                     or os.path.getsize(master_file_path) == 0
@@ -69,9 +74,6 @@ def sniff(interface):
                         writer.writerow(row)
 
                 os.remove(temp_file_path)
-                print(
-                    f"Appended data to {master_file_path} and removed temporary file."
-                )
 
             print(f"Restarting sniffer on {interface}.")
 
@@ -79,20 +81,17 @@ def sniff(interface):
         print(f"\nAnalysis manually stopped for interface {interface}.")
     except Exception as e:
         print(f"An error occurred on interface {interface}: {e}")
-    finally:
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
 
 
 def fetch_interfaces():
     """
-    Returns a list of active network interfaces.
+    Returns a list of active network interfaces recognized by Scapy.
     """
-    result = []
-    interfaces = ifcfg.interfaces()
-    for interface in interfaces:
-        if interfaces[interface].get("device") and interface != "lo":
-            result.append(interface)
+    scapy_interfaces = get_if_list()
+
+    result = [iface for iface in scapy_interfaces if "lo" not in iface.lower()]
+
+    print(f"Found interfaces: {result}")
     return result
 
 
