@@ -151,7 +151,7 @@ def create_sus_log():
     if not msg:
         return jsonify({"ok": False, "error": "sus_log string required"}), 400
 
-    SUS_LOGS.append(msg)
+    SUS_LOGS.append({"id": id, "msg": msg, "os": os})
     with (UPLOAD_DIR / "sus_logs.txt").open("a", encoding="utf-8") as f:
         f.write(msg + "\n")
 
@@ -160,7 +160,7 @@ def create_sus_log():
 
 @app.get("/api/logs")
 def list_sus_logs():
-    return jsonify({"sus_logs": SUS_LOGS})
+    return jsonify(SUS_LOGS)
 
 
 @app.post("/api/register")
@@ -186,11 +186,6 @@ def register_client():
 
     is_new = client_id not in REGISTERED_CLIENTS
     REGISTERED_CLIENTS[client_id] = {"id": client_id, "hostname": host}
-
-    try:
-        _save_registered_snapshot()
-    except Exception as exc:
-        app.logger.warning("Could not write registered snapshot: %s", exc)
 
     status_code = 201 if is_new else 200
     return (
