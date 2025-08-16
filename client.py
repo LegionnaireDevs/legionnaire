@@ -75,12 +75,12 @@ def read_config():
         return False
 
 
-# def register_with_control():
-#     global id, hostname
-#     print(f"Registering with control server: {hostname} {id}")
-#     response = requests.post(
-#         "http://localhost:5000/register", json={"hostname": hostname, "id": str(id)}
-#     )
+def register_with_control():
+    global id, hostname
+    print(f"Registering with control server: {hostname} {id}")
+    response = requests.post(
+        "http://localhost:5000/register", json={"hostname": hostname, "id": str(id)}
+    )
 
 # ---------- simple workers (no classes) ----------
 
@@ -111,7 +111,7 @@ def tcap_worker():
 def main():
     if not read_config():
         create_config()
-    # register_with_control()
+    register_with_control()
 
     threads = []
     threads.append(threading.Thread(target=start_tray))

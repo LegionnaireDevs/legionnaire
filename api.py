@@ -11,6 +11,7 @@ from datetime import datetime
 
 MALWARE_RESULTS = [] 
 SUS_LOGS = []
+REGISTERED_CLIENTS = {}
 
 app = Flask(__name__)
 CORS(app)
@@ -422,6 +423,57 @@ def create_sus_log():
 @app.get("/api/logs")
 def list_sus_logs():
     return jsonify({"sus_logs": SUS_LOGS})
+
+
+# CLIENT: 
+
+
+#Function saves data to local file in uploads/
+def _save_registered_snapshot():
+    out = (UPLOAD_DIR / "registered_clients.json")
+    out.write_text(json.dumps(list(REGISTERED_CLIENTS.values()), indent=2), encoding="utf-8")
+
+@app.post("/register")
+@app.post("/api/register")
+def register_client():
+    """
+    Register (or refresh) a client.
+
+    Expected JSON body:
+      {
+        "id": "<uuid-or-unique-id>",
+        "hostname": "<machine-hostname>"
+      }
+
+    Returns:
+      201 on first registration, 200 on subsequent refreshes.
+    """
+    payload = request.get_json(silent=True) or {}
+    client_id = (payload.get("id") or "").strip()
+    host      = (payload.get("hostname") or "").strip()
+
+    if not client_id or not host:
+        return jsonify({"ok": False, "error": "id and hostname required"}), 400
+
+    is_new = client_id not in REGISTERED_CLIENTS
+    REGISTERED_CLIENTS[client_id] = {"id": client_id, "hostname": host}
+
+    try:
+        _save_registered_snapshot()
+    except Exception as exc:
+        app.logger.warning("Could not write registered snapshot: %s", exc)
+
+    status_code = 201 if is_new else 200
+    return jsonify({
+        "ok": True,
+        "already": not is_new,
+        "client": REGISTERED_CLIENTS[client_id],
+    }), status_code
+
+# Optional: list who’s registered
+@app.get("/api/clients")
+def list_clients():
+    return jsonify(list(REGISTERED_CLIENTS.values()))
 
 if __name__ == "__main__":
     # Keep localhost; change host to "0.0.0.0" if you need LAN access
