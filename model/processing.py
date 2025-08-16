@@ -8,7 +8,7 @@ OUTPUT_FP = 'model/data/processed/processed.csv'
 attack_encode = {'BENIGN': 0, 'DDoS': 1, 'PortScan': 1, 'Bot': 1, 'Infiltration': 1, 'WebAttackBruteForce': 1,
                  'WebAttackXSS': 1, 'WebAttackSqlInjection': 1, 'FTP-Patator': 1, 'SSH-Patator': 1,
                  'DoSslowloris': 1, 'DoSSlowhttptest': 1, 'DoSHulk': 1, 'DoSGoldenEye': 1,
-                 'Heartbleed': 1, 1: 1}
+                 'Heartbleed': 1, 0: 0, 1: 1}
 
 data = []
 data.append(pd.read_csv("model/data/Friday-WorkingHours-Afternoon-DDos.pcap_ISCX.csv"))
@@ -18,10 +18,14 @@ data.append(pd.read_csv("model/data/Thursday-WorkingHours-Afternoon-Infilteratio
 data.append(pd.read_csv("model/data/Thursday-WorkingHours-Morning-WebAttacks.pcap_ISCX.csv"))
 data.append(pd.read_csv("model/data/Tuesday-WorkingHours.pcap_ISCX.csv"))
 data.append(pd.read_csv("model/data/Wednesday-workingHours.pcap_ISCX.csv"))
-missing_label = pd.read_csv("model/data/converted_data3.csv")
-missing_label['Label'] = 1
-data.append(missing_label)
 
+real_attack = pd.read_csv("model/data/attack_converted.csv")
+real_attack['Label'] = 1
+real_plain = pd.read_csv("model/data/plain_converted.csv")
+real_plain['Label'] = 0
+
+data.append(real_plain)
+data.append(real_attack)
 df = pd.concat(data)
 
 print(df[TARGET].unique())
@@ -30,14 +34,13 @@ df[TARGET] = df[TARGET].map(attack_encode)
 
 for col in df:
     if df[col].dtype == 'object':
-        print(col)
+        print("This column is object data:", col)
 
-print('sdgsg')
 for col in df:
     nans = df[col].isna().sum()
     if nans > 0:
-        print(col)
-        print(nans)
+        print("This column has nans:", col)
+        print("Total amount of nans in column:", nans)
 
 null_counts = df.isnull().sum()
 
@@ -45,13 +48,11 @@ df.replace([np.inf, -np.inf], np.nan, inplace=True)
 
 df.dropna(inplace=True)
 
-print('----')
-print(np.isinf(df).sum().sum())
-print('=----')
+print("Total inf in data:", np.isinf(df).sum().sum())
 
-print(df[TARGET].unique())
+print("Unique values of target:", df[TARGET].unique())
 
-print("Writing to file.")
-df.to_csv("testing", index=False)
+print("Writing to file...")
+df.to_csv(OUTPUT_FP, index=False)
 print("Finished writing to file.")
 
