@@ -11,7 +11,7 @@ const data = [
 
 export default function Statistics () {
     return (
-        <div className="p-20 w-screen h-screen justify-center items-center flex flex-col">  
+        <div className="min-h-screen w-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
             <h1 className="text-3xl font-bold underline"> Statistics Page </h1>
 
             <div className = "pt-20 grid grid-cols-2 gap-8 justify-center justify-items-center">

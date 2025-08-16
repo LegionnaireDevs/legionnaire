@@ -19,7 +19,7 @@ export default function Endpoints() {
     ]);
 
     return (
-        <div className="p-20 w-screen h-screen flex flex-col items-center">
+        <div className="min-h-screen w-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
             {/* Header and Button Container */}
             <div className="flex justify-between items-center w-full max-w-4xl mb-8">
                 <h1 className="text-3xl font-bold underline">Endpoints List</h1>
