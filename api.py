@@ -209,6 +209,12 @@ def register_client():
 def list_clients():
     return jsonify(list(REGISTERED_CLIENTS.values()))
 
+@app.get("/api/clients/<client_id>")
+def get_client(client_id):
+    client = REGISTERED_CLIENTS.get(client_id)
+    if not client:
+        return jsonify({"ok": False, "error": "Client not found"}), 404
+    return jsonify(client)
 
 def allowed_file(name: str) -> bool:
     return "." in name and name.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
