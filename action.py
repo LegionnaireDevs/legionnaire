@@ -2,13 +2,12 @@ import platform
 import os
 import subprocess
 
-# Program will need to be run as administrator
-# iptables rules will work for nftables too
-
 
 def KillProcess(processName):
     """
     Kills a process based on name.
+
+    processName: Name of process to kill.
     """
     userOS = platform.system()
 
@@ -58,11 +57,8 @@ def CreateFirewallRule(direction, source, dest, action, port, protocol):
     protocol:   "tcp" or "udp".
     """
 
-    # Might need to add a way to delete firewall rules
-    # May need to change name to just be dest
     userOS = platform.system()
 
-    # Can be expanded for other operating systems.
     if userOS == "Linux":
         if VerifyIptables(direction, action, protocol):
             cmd = f"iptables -t filter -A {direction} -s {source} -d {dest} -p {protocol} --dport {port} -j {action}"
@@ -77,12 +73,18 @@ def CreateFirewallRule(direction, source, dest, action, port, protocol):
             )
         else:
             return
+    else:
+        return "Unsupported OS"
     subprocess.run(cmd, shell=True)
 
 
 def VerifyIptables(direction, action, protocol):
     """
     Verifies parameters for iptables.
+
+    direction:  "INPUT" or "OUTPUT".
+    action:     "ACCEPT" or "DROP".
+    protocol:   "tcp" or "udp".
     """
     flag = True
     if direction != "INPUT" and direction != "OUTPUT":
@@ -94,9 +96,13 @@ def VerifyIptables(direction, action, protocol):
     return flag
 
 
-def VerifyNetsh(direction, action, port, protocol):
+def VerifyNetsh(direction, action, protocol):
     """
     Verifies parameters for windows netsh.
+
+    direction:  "in" or "out".
+    action:     "allow" or "block".
+    protocol:       "tcp" or "udp".
     """
     flag = True
     if direction != "in" and direction != "out":
@@ -111,6 +117,9 @@ def VerifyNetsh(direction, action, port, protocol):
 def InvalidMessage(errType, received):
     """
     Prints invalid message.
+
+    errType:    Where the error originates from.
+    received:   Incorrect value that was received.
     """
     print(f"Invalid {errType}. Received {received}")
     return False
