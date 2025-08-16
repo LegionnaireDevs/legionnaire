@@ -179,12 +179,13 @@ def register_client():
     payload = request.get_json(silent=True) or {}
     client_id = (payload.get("id") or "").strip()
     host = (payload.get("hostname") or "").strip()
+    ip = request.remote_addr
 
     if not client_id or not host:
         return jsonify({"ok": False, "error": "id and hostname required"}), 400
 
     is_new = client_id not in REGISTERED_CLIENTS
-    REGISTERED_CLIENTS[client_id] = {"id": client_id, "hostname": host}
+    REGISTERED_CLIENTS[client_id] = {"id": client_id, "hostname": host, "ip": ip}
 
     try:
         _save_registered_snapshot()

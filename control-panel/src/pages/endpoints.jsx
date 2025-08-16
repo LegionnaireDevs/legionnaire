@@ -1,22 +1,32 @@
-import { React, useState } from "react";
+import { React, useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
+import { fetchClients } from "../components/ApiService";
 
 export default function Endpoints() {
     const navigate = useNavigate();
-    
+
     const handleManageClient = (clientID) => {
         navigate(`/manage_client/${clientID}`);
     }
-    
+
     const handleNewClient = () => {
         navigate('/new_client');
     }
 
-    // Call api to get endpoints list. This is a placeholder for the actual API call.
-    const [clients, setClients] = useState([
-        { id: 1, name: 'ENV-Lap01', ip: '192.168.0.1', reports: '100' },
-        { id: 2, name: 'WKS-02', ip: '192.168.0.2', reports: '25' },
-    ]);
+    // Initialize state with an empty array.
+    const [clients, setClients] = useState([]);
+    
+
+    // Call API to get endpoints list and update state.
+    useEffect(() => {
+        fetchClients()
+            .then(response => {
+                // Update the state with the data from the API response
+                console.log(response);
+                setClients(response || []);
+            })
+            .catch(error => console.error("Failed to fetch clients:", error));
+    }, []); // Empty dependency array ensures this runs only once
 
     return (
         <div className="min-h-screen max-h-screen w-full max-w-full relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -67,56 +77,63 @@ export default function Endpoints() {
                                     <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
                                         Endpoint IP
                                     </th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                                    {/* <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
                                         Reports
-                                    </th>
+                                    </th> */}
                                     <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
                                         Actions
                                     </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/10">
-                                {clients.map((client, index) => (
-                                    <tr 
-                                        key={client.id} 
-                                        className="hover:bg-white/5 transition-colors duration-200 group"
-                                    >
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-500 to-red-500 flex items-center justify-center text-white text-sm font-bold mr-3">
-                                                {client.id}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                
-                                                <div className="text-white font-medium group-hover:text-blue-300 transition-colors">
-                                                    {client.name}
+                                {clients.length > 0 ? (
+                                    clients.map((client) => (
+                                        <tr
+                                            key={client.id}
+                                            className="hover:bg-white/5 transition-colors duration-200 group"
+                                        >
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-500 to-red-500 flex items-center justify-center text-white text-sm font-bold mr-3">
+                                                    {client.id}
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                                                {client.ip}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className="w-3 h-3 rounded-full bg-green-400 mr-2"></div>
-                                                <span className="text-white font-medium">
-                                                    {client.reports}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <div className="text-white font-medium group-hover:text-blue-300 transition-colors">
+                                                        {client.hostname}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                                    {client.ip}
                                                 </span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <button
-                                                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                                                onClick={() => handleManageClient(client.id)}
-                                            >
-                                                Manage
-                                            </button>
+                                            </td>
+                                            {/* <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <div className="w-3 h-3 rounded-full bg-green-400 mr-2"></div>
+                                                    <span className="text-white font-medium">
+                                                        {client.reports}
+                                                    </span>
+                                                </div>
+                                            </td> */}
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <button
+                                                    className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                                                    onClick={() => handleManageClient(client.id)}
+                                                >
+                                                    Manage
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="5" className="px-6 py-4 text-center text-gray-400">
+                                            Loading clients or no clients found...
                                         </td>
                                     </tr>
-                                ))}
+                                )}
                             </tbody>
                         </table>
                     </div>
