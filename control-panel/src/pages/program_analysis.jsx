@@ -89,7 +89,7 @@ export default function ProgramAnalysis() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="text-white font-medium group-hover:text-red-300 transition-colors font-mono text-sm break-all">
+                                            <div className="text-white font-medium group-hover:text-blue-300 transition-colors font-mono text-sm break-all">
                                                 {log.hash}
                                             </div>
                                         </td>

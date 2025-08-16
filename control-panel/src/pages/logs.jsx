@@ -12,27 +12,8 @@ export default function Logs() {
         { id: 8, suspicious: "Unexpected outbound connection to unknown host", os: "Windows 10" }
     ];
 
-    const getOSInfo = (os) => {
-        if (os.toLowerCase().includes('windows')) {
-            return { color: 'bg-blue-500/20 text-blue-300 border-blue-500/30', icon: '🪟' };
-        } else if (os.toLowerCase().includes('ubuntu') || os.toLowerCase().includes('centos') || os.toLowerCase().includes('rhel')) {
-            return { color: 'bg-orange-500/20 text-orange-300 border-orange-500/30', icon: '🐧' };
-        } else if (os.toLowerCase().includes('macos')) {
-            return { color: 'bg-gray-500/20 text-gray-300 border-gray-500/30', icon: '🍎' };
-        }
-        return { color: 'bg-purple-500/20 text-purple-300 border-purple-500/30', icon: '💻' };
-    };
 
-    const getSeverityLevel = (suspicious) => {
-        if (suspicious.toLowerCase().includes('failed login') || suspicious.toLowerCase().includes('authentication')) {
-            return { level: 'Medium', color: 'text-yellow-300' };
-        } else if (suspicious.toLowerCase().includes('unauthorized') || suspicious.toLowerCase().includes('privilege escalation')) {
-            return { level: 'High', color: 'text-red-300' };
-        } else if (suspicious.toLowerCase().includes('suspicious') || suspicious.toLowerCase().includes('anomalous')) {
-            return { level: 'High', color: 'text-red-300' };
-        }
-        return { level: 'Low', color: 'text-green-300' };
-    };
+   
 
     return (
         <div className="min-h-screen w-full relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -75,9 +56,7 @@ export default function Logs() {
                                     <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
                                         Operating System
                                     </th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
-                                        Severity
-                                    </th>
+                                    
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/10">
@@ -94,25 +73,16 @@ export default function Logs() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className={`text-white font-medium group-hover:text-amber-300 transition-colors ${getSeverityLevel(log.suspicious).color}`}>
+                                            <div className={`text-white font-medium group-hover:text-blue-300 transition-colors `}>
                                                 {log.suspicious}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getOSInfo(log.os).color}`}>
-                                                <span className="mr-1">{getOSInfo(log.os).icon}</span>
+                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border `}>
                                                 {log.os}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${
-                                                getSeverityLevel(log.suspicious).level === 'High' ? 'bg-red-500/20 text-red-300 border-red-500/30' :
-                                                getSeverityLevel(log.suspicious).level === 'Medium' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30' :
-                                                'bg-green-500/20 text-green-300 border-green-500/30'
-                                            }`}>
-                                                {getSeverityLevel(log.suspicious).level}
-                                            </span>
-                                        </td>
+                                        
                                     </tr>
                                 ))}
                             </tbody>
