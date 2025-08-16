@@ -1,5 +1,6 @@
 <div align="center">
-<img src="https://raw.githubusercontent.com/LegionnaireDevs/legionnaire/b8d864c44656f320bf228d93e103714ec98054d2/legionnaire%20git.png?raw=true" alt="Legionnaire Logo" width="50%">
+<img src="https://raw.githubusercontent.com/LegionnaireDevs/legionnaire/main/hackathon%20legionnare.png?raw=true" alt="Legionnaire Logo" width="50%">
+
 
 
 <h1>Legionnaire</h1> 

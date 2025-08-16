@@ -12,6 +12,7 @@ from datetime import datetime
 MALWARE_RESULTS = []
 SUS_LOGS = []
 ALLOWED_EXTENSIONS = {"csv"}
+REGISTERED_CLIENTS = {}
 UPLOAD_DIR = Path(__file__).parent / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 CONVERTED_DIR = UPLOAD_DIR / "converted"
@@ -158,6 +159,47 @@ def create_sus_log():
 @app.get("/api/logs")
 def list_sus_logs():
     return jsonify({"sus_logs": SUS_LOGS})
+  
+  
+@app.post("/api/register")
+def register_client():
+    """
+    Register (or refresh) a client.
+
+    Expected JSON body:
+      {
+        "id": "<uuid-or-unique-id>",
+        "hostname": "<machine-hostname>"
+      }
+
+    Returns:
+      201 on first registration, 200 on subsequent refreshes.
+    """
+    payload = request.get_json(silent=True) or {}
+    client_id = (payload.get("id") or "").strip()
+    host      = (payload.get("hostname") or "").strip()
+
+    if not client_id or not host:
+        return jsonify({"ok": False, "error": "id and hostname required"}), 400
+
+    is_new = client_id not in REGISTERED_CLIENTS
+    REGISTERED_CLIENTS[client_id] = {"id": client_id, "hostname": host}
+
+    try:
+        _save_registered_snapshot()
+    except Exception as exc:
+        app.logger.warning("Could not write registered snapshot: %s", exc)
+
+    status_code = 201 if is_new else 200
+    return jsonify({
+        "ok": True,
+        "already": not is_new,
+        "client": REGISTERED_CLIENTS[client_id],
+    }), status_code
+
+@app.get("/api/clients")
+def list_clients():
+    return jsonify(list(REGISTERED_CLIENTS.values()))
 
 
 def allowed_file(name: str) -> bool:
@@ -411,7 +453,6 @@ def _start_background_threads_once():
 
 def _kickoff_bg():
     _start_background_threads_once()
-
 
 if __name__ == "__main__":
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:

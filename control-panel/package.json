@@ -10,11 +10,31 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@fontsource/inter": "^5.2.6",
+    "@headlessui/react": "^2.2.7",
+    "@heroicons/react": "^2.2.0",
+    "@mui/material": "^7.3.1",
+    "@mui/x-charts": "^8.10.1",
+    "@remixicon/react": "^4.6.0",
+    "@tailwindcss/vite": "^4.1.12",
+    "clsx": "^2.1.1",
+    "firebase": "^12.1.0",
+    "lucide-react": "^0.539.0",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "react-router": "^7.8.0",
+    "react-router-dom": "^7.8.0",
+    "tailwind-merge": "^3.3.1",
+    "tailwind-variants": "^2.1.0",
+    "tailwindcss": "^4.1.12",
+    "tremor": "^0.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/postcss": "^4.1.12",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.0",
@@ -22,6 +42,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
+    "postcss": "^8.5.6",
     "vite": "^7.1.2"
   }
 }

@@ -1,43 +1,41 @@
 import { useEffect, useState } from 'react'
+import React from 'react';
+import {Routes, Route } from 'react-router-dom';
+import API_Status from './pages/api_status.jsx';
+import Navbar from './components/Navbar.jsx';
+import Home from './pages/home.jsx';
+import Statistics from './pages/statistics.jsx';
+import Endpoints from './pages/endpoints.jsx';
+import Manage_Client from './pages/manage_client.jsx';
+import Dashboard from './pages/dashboard.jsx';
+import NewClient from './pages/new_client.jsx';
+import Login from './pages/login.jsx';
+import Logs from './pages/logs.jsx';
+import ProgramAnalysis from './pages/program_analysis.jsx';
+import Network from './pages/network.jsx';
 
-export default function App() {
-  const [hello, setHello] = useState('')
-  const [sum, setSum] = useState(null)
-  const [info, setInfo] = useState(null)
-  const [apiUp, setApiUp] = useState(false)
-
-  useEffect(() => {
-    fetch('/api/health').then(r => r.json()).then(() => setApiUp(true)).catch(() => setApiUp(false))
-    fetch('/api/hello').then(r => r.json()).then(d => setHello(d.message)).catch(console.error)
-    fetch('/api/site-info').then(r => r.json()).then(setInfo).catch(console.error)
-  }, [])
-
-  const add = async () => {
-    const r = await fetch('/api/add', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ a: 5, b: 7 })
-    })
-    const d = await r.json()
-    setSum(d.result)
-  }
+const App = () => {
 
   return (
-    <div style={{ padding: 20, fontFamily: 'system-ui, Arial' }}>
-      <h1>Legionnaire Control Panel (Vite)</h1>
-      <p>Status: <b style={{color: apiUp ? 'green' : 'crimson'}}>{apiUp ? 'API online' : 'API offline'}</b></p>
-      <p>From Flask: <b>{hello}</b></p>
-      <button onClick={add} style={{ padding: '8px 12px', borderRadius: 6 }}>Add 5 + 7</button>
-      {sum !== null && <p>Sum from API: <b>{sum}</b></p>}
-      <h3>Site Info</h3>
-      {info ? (
-        <ul>
-          <li><b>Name:</b> {info.name}</li>
-          <li><b>Version:</b> {info.version}</li>
-          <li><b>Environment:</b> {info.environment}</li>
-          <li><b>Backend:</b> {info.backend}</li>
-        </ul>
-      ) : <p>Loading…</p>}
+    <div>
+      <Navbar />
+        <Routes>
+          <Route path ="/" element = {<Home />} />
+          <Route path ="/dashboard" element = {<Dashboard />} />
+          <Route path ="/login" element = {<Login />} />
+          <Route path ="/api_status" element = {<API_Status />} />
+          <Route path ="/statistics" element = {<Statistics />} />
+          <Route path ="/endpoints" element = {<Endpoints />} />
+          <Route path ="/manage_client/:clientID" element = {<Manage_Client />} />
+          <Route path ="/new_client" element = {<NewClient />} />
+          <Route path ="/logs" element = {<Logs />} />
+          <Route path ="/network" element = {<Network />} />
+          <Route path ="/program_analysis" element = {<ProgramAnalysis />} />
+
+        </Routes>
     </div>
+    
   )
 }
+
+export default App;
