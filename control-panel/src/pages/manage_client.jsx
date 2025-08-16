@@ -35,12 +35,12 @@ export default function Manage_Client() {
     
     // Updated action handlers to accept a report ID
     const handleBlock = (reportId) => {
-        console.log(`Blocking network for report ID: ${reportId}`);
+        alert(`Blocking network for report ID: ${reportId}`);
         // Implement API call to block the specific report
     };
 
     const handleKillProcess = (reportId) => {
-        console.log(`Killing process for report ID: ${reportId}`);
+        alert(`Killing process for report ID: ${reportId}`);
         // Implement API call to change the report status to 'Investigating'
     };
 
