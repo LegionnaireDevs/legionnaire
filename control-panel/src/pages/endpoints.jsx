@@ -9,28 +9,33 @@ export default function Endpoints() {
     ]);
 
     return (
-    <div class="p-20 w-screen h-screen justify-top items-center flex flex-col">  
-        <h1 class="text-3xl font-bold underline"> Endpoints List </h1>
+        <div class="p-20 w-screen h-screen justify-start items-center flex flex-col"> 
+        <h1 class="pb-5 -3xl font-bold underline"> Endpoints List </h1>
 
-        <table className="table table-striped table-bordered">
-                <thead>
+        <table class="table table-auto w-full bg-white border border-gray-300">
+                <thead class='bg-blue-300 text-black'>
                     <tr>
-                        <th>Endpoint Name</th>
-                        <th>Endpoint ID</th>
-                        <th>Number of Reports</th>
+                        <th class="p-4 border-b border-blue-gray-100 bg-blue-gray-50"> Endpoint Name </th>
+                        <th class="p-4 border-b border-blue-gray-100 bg-blue-gray-50">Endpoint IP</th>
+                        <th class="p-4 border-b border-blue-gray-100 bg-blue-gray-50">Reports</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class = 'text-black'>
                     {clients && clients.map(client =>
                         <tr key={client.id}>
-                            <td>{client.name}</td>
-                            <td>{client.ip}</td>
-                            <td>{client.reports}</td>
+                            <td class = 'text-center'>{client.name}</td>
+                            <td class = 'text-center'>{client.ip}</td>
+                            <td class = 'text-center'>
+                                <div class="flex justify-between items-center px-4">
+                                    {client.reports}
+                                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 rounded">Manage</button>
+                                </div>
+                            </td>
                         </tr>
                     )}
                 </tbody>
             </table>
-    </div>
+        </div>
 
     );
 }
