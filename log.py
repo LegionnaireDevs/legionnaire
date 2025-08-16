@@ -7,9 +7,22 @@ import subprocess
 import platform
 import re
 import socket
+import requests
+from datetime import datetime
+
+API_URL = "http://127.0.0.1:5000"
 
 HOSTNAME = socket.gethostname()
 
+def send_sus_log():
+    try:
+        requests.post(
+            f"{API_URL}/api/logs",
+            json={"sus_log": "suspicious activity detected by log.py"},
+            timeout=3,
+        )
+    except Exception as e:
+        print(f"Failed to send sus_log: {e}")
 # SYSTEM LOGS
 # Mac system logs from the last hour
 def macLogs():
@@ -130,35 +143,28 @@ def filterSuspicious(logs):
 # Return system logs depending on platform.
 def sysLogs():
     osName = platform.system()
+    suspicious = []
     if osName == "Darwin":
-        logs = macLogs()
+        logs = macLogs()                        # generator of lines
         suspicious = filterSuspicious(logs)
-        if suspicious:
-            for s in suspicious:
-                print("Suspicious log found: ",s)
-        else:
-            print("No suspicious logs found in this batch.")
     elif osName == "Linux":
-        logs = linuxLogs()
+        logs = linuxLogs() or ""                # string
         suspicious = filterSuspicious(logs.splitlines())
-        if suspicious:
-            for s in suspicious:
-                print("Suspicious logs found: ",s)
-        else:
-            print("No suspicious logs found in this batch.")
-        
     elif osName == "Windows":
-        logs = windowLogs()
-        suspicious = filterSuspicious(logs)
-        if suspicious:
-            for s in suspicious: 
-                print("Suspicious logs found: ",s)
-        else:
-            print("No suspicious logs found in this batch.")
+        logs = windowLogs() or ""               # string
+        suspicious = filterSuspicious(logs.splitlines())
     else:
         print("Currently an unsupported OS.")
         return []
 
+    if suspicious:
+        for s in suspicious:
+            print("Suspicious log found:", s)
+            send_sus_log()
+    else:
+        print("No suspicious logs found in this batch.")
+
+    return suspicious
 
 if __name__ == "__main__":
     logs = sysLogs()

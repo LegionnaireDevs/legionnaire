@@ -8,3 +8,4 @@ control-panel/dist/
 venv
 env
 .env
+uploads/
