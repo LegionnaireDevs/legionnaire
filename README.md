@@ -1,14 +1,15 @@
+<div align="center">
 <img src="https://raw.githubusercontent.com/LegionnaireDevs/legionnaire/b8d864c44656f320bf228d93e103714ec98054d2/legionnaire%20git.png?raw=true" alt="Legionnaire Logo" width="50%">
 
 
-# Legionnaire
-
+<h1>Legionnaire</h1> 
+<p>
 Legionnaire is an AI-powered SIEM (Security Information and Event Management) platform designed for comprehensive, automated threat detection and response. It operates as a modular, GUI-less system running in the background, consisting of a client and a control server.
+</p>
 
 
-
-#### Built for the UQCS Hackathon 2025.
-
+<h3> Built for the UQCS Hackathon 2025. </h3>
+</div>
 
 ## Features
 
