@@ -7,6 +7,7 @@ import Home from './pages/home.jsx';
 import Statistics from './pages/statistics.jsx';
 import Endpoints from './pages/endpoints.jsx';
 import Manage_Client from './pages/manage_client.jsx';
+import Dashboard from './pages/dashboard.jsx';
 
 const App = () => {
 
@@ -15,6 +16,7 @@ const App = () => {
       <Navbar />
         <Routes>
           <Route path ="/" element = {<Home />} />
+          <Route path ="/dashboard" element = {<Dashboard />} />
           <Route path ="/api_status" element = {<API_Status />} />
           <Route path ="/statistics" element = {<Statistics />} />
           <Route path ="/endpoints" element = {<Endpoints />} />
