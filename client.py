@@ -1,7 +1,5 @@
-import pystray
-from PIL import Image, ImageDraw
+from PIL import Image
 import time
-import json
 
 import threading
 import requests
@@ -11,10 +9,14 @@ import multiprocessing
 import uuid
 import socket
 import configparser
+import platform
 
 from log import sysLogs
 from processes import processList
 from t_cap import run as tcap_run
+
+if platform.system() == "Windows":
+    import pystray
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -24,15 +26,19 @@ modules = {name: False for name in ["network", "logs", "program", "actions"]}
 
 
 def start_tray():
-    def quit_action(icon, item):
-        icon.stop()
+    userOS = platform.system()
 
-    icon_path = os.path.join(BASE_DIR, "app.ico")
-    image = Image.open(icon_path)
+    if userOS == "Windows":
 
-    menu = (pystray.MenuItem("Quit", quit_action),)
-    icon = pystray.Icon("Legionnaire", image, "Legionnaire", menu)
-    icon.run()
+        def quit_action(icon, item):
+            icon.stop()
+
+        icon_path = os.path.join(BASE_DIR, "app.ico")
+        image = Image.open(icon_path)
+
+        menu = (pystray.MenuItem("Quit", quit_action),)
+        icon = pystray.Icon("Legionnaire", image, "Legionnaire", menu)
+        icon.run()
 
 
 def create_config():
@@ -56,7 +62,6 @@ def create_config():
 def read_config():
     global id, hostname
     try:
-
         config = configparser.ConfigParser()
         with open("config.ini", "r") as configfile:
             config.read_file(configfile)
