@@ -1,33 +1,24 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 export default function ProgramAnalysis() {
-    const programData = [
-        { id: 1, hash: "e6b50dd767cc99afa4393cb1c93e87314cd415bdecb6b6f7ed6596411dd2f61e", timestamp: "16/08/25 18:42", result: "Trojan" },
-        { id: 2, hash: "e6b50dd767cc99afa4393cb1c93e87314cd415bdecb6b6f7ed6596411dd2f61e", timestamp: "16/08/25 18:42", result: "Backdoor" },
-        { id: 3, hash: "e6b50dd767cc99afa4393cb1c93e87314cd415bdecb6b6f7ed6596411dd2f61e", timestamp: "16/08/25 18:42", result: "Rat" },
-        { id: 4, hash: "e6b50dd767cc99afa4393cb1c93e87314cd415bdecb6b6f7ed6596411dd2f61e", timestamp: "16/08/25 18:42", result: "Remote execution" },
-        { id: 5, hash: "e6b50dd767cc99afa4393cb1c93e87314cd415bdecb6b6f7ed6596411dd2f61e", timestamp: "16/08/25 18:42", result: "AnyDesk Backdoor" },
-        { id: 6, hash: "e6b50dd767cc99afa4393cb1c93e87314cd415bdecb6b6f7ed6596411dd2f61e", timestamp: "16/08/25 18:42", result: "Crypto Drainer" },
-        { id: 7, hash: "e6b50dd767cc99afa4393cb1c93e87314cd415bdecb6b6f7ed6596411dd2f61e", timestamp: "16/08/25 18:42", result: "Trojan" },
-        { id: 8, hash: "e6b50dd767cc99afa4393cb1c93e87314cd415bdecb6b6f7ed6596411dd2f61e", timestamp: "16/08/25 18:42", result: "Trojan" }
-    ];
+    const [results, setResults] = useState([]);
 
-    const getThreatColor = (result) => {
-        switch (result.toLowerCase()) {
-            case 'trojan':
-                return 'bg-red-500/20 text-red-300 border-red-500/30';
-            case 'backdoor':
-            case 'anydesk backdoor':
-                return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
-            case 'rat':
-            case 'remote execution':
-                return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
-            case 'crypto drainer':
-                return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
-            default:
-                return 'bg-red-500/20 text-red-300 border-red-500/30';
+    useEffect(() => {
+        async function fetchResults() {
+          try {
+            const res = await fetch("http://localhost:5000/api/malware-results");
+            const data = await res.json();
+            setResults(data || []);
+          } catch (err) {
+            console.error("Error fetching malware results:", err);
+          }
         }
-    };
+    
+        fetchResults();
+        const interval = setInterval(fetchResults, 5000); // optional: refresh every 5s
+        return () => clearInterval(interval);
+      }, []);
+    
 
     return (
         <div className="min-h-screen max-h-screen w-full max-w-full relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -57,59 +48,51 @@ export default function ProgramAnalysis() {
 
                 {/* Analysis Table */}
                 <div className="w-full max-w-7xl mx-auto bg-black/20 backdrop-blur-lg rounded-xl border border-white/10 shadow-2xl overflow-hidden flex-1">
-                    <div className="overflow-x-auto h-full">
-                        <table className="w-full">
-                            <thead className="bg-gradient-to-r from-purple-600/30 to-blue-600/30 border-b border-white/10 sticky top-0">
-                                <tr>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
-                                        ID
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
-                                        Hash
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
-                                        TimeStamp
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
-                                        Threat Type
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/10">
-                                {programData.map((log, index) => (
-                                    <tr 
-                                        key={log.id} 
-                                        className="hover:bg-white/5 transition-colors duration-200 group"
-                                    >
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center">
-                                                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-500 to-red-500 flex items-center justify-center text-white text-sm font-bold mr-3">
-                                                    {log.id}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-white font-medium group-hover:text-blue-300 transition-colors font-mono text-sm break-all">
-                                                {log.hash}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-white font-medium group-hover:text-blue-300 transition-colors">
-                                                {log.timestamp}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getThreatColor(log.result)}`}>
-                                                {log.result}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+          <div className="overflow-auto h-full">
+            <table className="w-full">
+              <thead className="bg-gradient-to-r from-purple-600/30 to-blue-600/30 border-b border-white/10 sticky top-0">
+                <tr>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                    ID
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                    Hash
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                    Results
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                    Received At
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/10">
+                {results.map((log, index) => (
+                  <tr key={index} className="hover:bg-white/5 transition-colors duration-200 group">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex items-center justify-center text-white text-sm font-bold mr-3">
+                          {log.id}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-white font-medium group-hover:text-blue-300 transition-colors">
+                      {log.hash}
+                    </td>
+                    <td className="px-6 py-4 text-white font-medium group-hover:text-blue-300 transition-colors">
+                    <div>{log.results.description}</div>
+                    <div className="capitalize">{log.results.threat_level}</div>
+                    </td>
+                    <td className="px-6 py-4 text-white font-medium group-hover:text-blue-300 transition-colors">
+                    {new Date(log.received_at).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 }

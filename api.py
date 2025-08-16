@@ -144,6 +144,7 @@ def create_sus_log():
         if isinstance(payload, dict):
             val = payload.get("sus_log")
             id = payload.get("id") or ""
+            os = payload.get("os", "Unknown")
             if isinstance(val, str):
                 msg = val.strip()
 
