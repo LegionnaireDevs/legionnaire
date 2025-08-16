@@ -134,6 +134,35 @@ const Home = () => {
           </div>
         </div>
 
+        <div className="absolute top-50 right-50 z-20">
+        <div className="relative">
+          {/* Moon glow effect */}
+          <div className="absolute inset-0 w-24 h-24 bg-blue-400/20 rounded-full blur-xl animate-pulse"></div>
+          
+          {/* Main moon body */}
+          <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-slate-200 via-slate-300 to-slate-400 shadow-2xl">
+            {/* Moon surface details/craters */}
+            <div className="absolute top-3 left-4 w-3 h-3 bg-slate-400/60 rounded-full"></div>
+            <div className="absolute top-6 right-3 w-2 h-2 bg-slate-500/40 rounded-full"></div>
+            <div className="absolute bottom-4 left-3 w-2.5 h-2.5 bg-slate-400/50 rounded-full"></div>
+            <div className="absolute bottom-6 right-5 w-1.5 h-1.5 bg-slate-500/60 rounded-full"></div>
+            <div className="absolute top-8 left-6 w-1 h-1 bg-slate-500/70 rounded-full"></div>
+            
+            {/* Moon highlight */}
+            <div className="absolute top-2 left-3 w-6 h-6 bg-white/30 rounded-full blur-sm"></div>
+          </div>
+          
+          {/* Subtle orbiting particles */}
+          <div className="absolute -top-2 -right-2 w-1 h-1 bg-blue-300 rounded-full animate-ping opacity-70"></div>
+          <div className="absolute -bottom-1 -left-1 w-0.5 h-0.5 bg-purple-300 rounded-full animate-pulse delay-700"></div>
+        </div>
+      </div>
+
+      {/* Corner decorations */}
+      <div className="absolute top-0 left-0 w-32 h-32 border-l-2 border-t-2 border-blue-400/30"></div>
+      <div className="absolute bottom-0 left-0 w-32 h-32 border-l-2 border-b-2 border-cyan-400/30"></div>
+      <div className="absolute bottom-0 right-0 w-32 h-32 border-r-2 border-b-2 border-blue-400/30"></div>
+
       
         {/* Floating action hint */}
         <div className={`mt-16 transition-all duration-1000 delay-1500 ${

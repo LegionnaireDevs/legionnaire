@@ -91,7 +91,7 @@ export default function Dashboard() {
                 {/* Left Vertical Toolbar */}
                 <div className="w-64 bg-black/20 backdrop-blur-sm border-r border-white/10">
                     <div className="w-full max-w-7xl mx-auto mb-8">
-                    <h1 className="text-white text-lg font-semibold mb-8">
+                    <h1 className="text-white text-lg font-semibold mb-8 px-8 py-3">
                     {username} Admin Panel
                 </h1>
                         <nav className="space-y-2">
