@@ -90,7 +90,7 @@ export default function Dashboard() {
             <div className="relative z-10 flex" style={{height: 'calc(100vh - 80px)', marginTop: '80px'}}>
                 {/* Left Vertical Toolbar */}
                 <div className="w-64 bg-black/20 backdrop-blur-sm border-r border-white/10">
-                    <div className="p-6">
+                    <div className="w-full max-w-7xl mx-auto mb-8">
                     <h1 className="text-white text-lg font-semibold mb-8">
                     {username} Admin Panel
                 </h1>
