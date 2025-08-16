@@ -5,6 +5,7 @@ import API_Status from './pages/api_status.jsx';
 import Navbar from './components/Navbar.jsx';
 import Home from './pages/home.jsx';
 import Statistics from './pages/statistics.jsx';
+import Endpoints from './pages/endpoints.jsx';
 
 const App = () => {
 
@@ -15,6 +16,7 @@ const App = () => {
           <Route path ="/" element = {<Home />} />
           <Route path ="/api_status" element = {<API_Status />} />
           <Route path ="/statistics" element = {<Statistics />} />
+          <Route path ="/endpoints" element = {<Endpoints />} />
         </Routes>
     </div>
     
