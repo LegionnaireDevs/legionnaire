@@ -86,8 +86,8 @@ export default function Dashboard() {
             </div>
             
             
-            {/* Main layout */}
-            <div className="relative z-10 flex" style={{height: 'calc(100vh - 80px)', marginTop: '80px'}}>
+            {/* Main layout.*/}
+            <div className="relative z-10 flex" style={{height: 'calc(100vh - 80px)', marginTop: '65px'}}>
                 {/* Left Vertical Toolbar */}
                 <div className="w-64 bg-black/20 backdrop-blur-sm border-r border-white/10">
                     <div className="w-full max-w-7xl mx-auto mb-8">
