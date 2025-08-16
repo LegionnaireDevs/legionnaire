@@ -5,8 +5,6 @@
 import requests
 import json
 
-hash = "e6b50dd767cc99afa4393cb1c93e87314cd415bdecb6b6f7ed6596411dd2f61e"
-
 def queryHash(hash):
     # Queries database using hash.
     url = "https://mb-api.abuse.ch/api/v1/"
@@ -68,4 +66,8 @@ def analyseResults(response):
     print(resultData)
 
 
-queryHash(hash)
+if __name__ == "__main__":
+    # Only runs when you execute programanalysis.py directly
+    test_hash = "e6b50dd767cc99afa4393cb1c93e87314cd415bdecb6b6f7ed6596411dd2f61e"
+    queryHash(test_hash)
+
