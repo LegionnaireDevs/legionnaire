@@ -1,6 +1,6 @@
 import pystray
 from PIL import Image, ImageDraw
-
+import time 
 import json
 from flask import Flask
 
@@ -11,6 +11,11 @@ import os
 import uuid
 import socket
 import configparser
+
+# === import the functions from your other scripts ===
+from log import sysLogs                   # one-shot scan/print
+from processes import processList         # one-shot pass
+from t_cap import run as tcap_run         # long-running capture
 
 id = ""
 hostname = ""
@@ -77,6 +82,31 @@ def read_config():
 #         "http://localhost:5000/register", json={"hostname": hostname, "id": str(id)}
 #     )
 
+# ---------- simple workers (no classes) ----------
+
+def logs_worker(interval=60):
+    while True:
+        try:
+            sysLogs()              # prints and/or posts if suspicious
+        except Exception as e:
+            print("logs_worker error:", e)
+        time.sleep(interval)
+
+def processes_worker(interval=300):
+    while True:
+        try:
+            processList()          # does its one pass
+        except Exception as e:
+            print("processes_worker error:", e)
+        time.sleep(interval)
+
+def tcap_worker():
+    try:
+        tcap_run()                 # blocks forever internally
+    except Exception as e:
+        print("tcap_worker error:", e)
+
+# -------------------------------------------------
 
 def main():
     if not read_config():
@@ -85,8 +115,13 @@ def main():
 
     threads = []
     threads.append(threading.Thread(target=start_tray))
+    threads.append(threading.Thread(target=logs_worker))
+    threads.append(threading.Thread(target=processes_worker))
+    threads.append(threading.Thread(target=tcap_worker))
+
     # threads.append(threading.Thread(target=api))
 
+    
     for thread in threads:
         thread.start()
 
