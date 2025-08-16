@@ -28,7 +28,7 @@ Acts as a defense and response system, capable of blocking network attacks via a
 
 ## Authors
 
-- [@Sean] (https://github.com/seanhramsey)
+- [@Sean](https://github.com/seanhramsey)
 - [@Thomas](https://github.com/TomMcPh)
 - [@Samuel](https://github.com/smp46)
 - [@Liam](https://github.com/Meemum)
