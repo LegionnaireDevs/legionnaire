@@ -59,8 +59,8 @@ export default function Statistics() {
             <div className="absolute bottom-1/6 left-3/5 w-1 h-1 bg-white rounded-full animate-ping delay-600"></div>
 
             <div className="p-6 h-full flex flex-col">
-                {/* Header Section */}
-                <div className="mb-8">
+                {/* Header Section.*/}
+                <div className="w-full max-w-7xl mx-auto mb-8">
                     <h1 className="text-3xl font-bold text-white mb-2">Statistics Dashboard</h1>
                     <p className="text-xl text-gray-300">System health and security metrics overview.</p>
                 </div>
