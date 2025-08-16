@@ -1,15 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
 export default function Manage_Client() {
-    let params  = useParams(); // Correctly destructure the 'clientId' parameter
-    const client_id = params.clientID; // Use the clientId in your component logic
+    const params = useParams();
+    const client_id = params.clientID;
 
     const [client, setClient] = useState(null);
     const [reports, setReports] = useState([]);
 
-    // Placeholder data for demonstration. To be replaced with actual API calls.
+    // Placeholder data to be replaced with actual API calls.
     const clientData = {
         '1': { id: 1, name: 'ENV-Lap01', ip: '192.168.0.1' },
         '2': { id: 2, name: 'WKS-02', ip: '192.168.0.2' },
@@ -26,7 +25,6 @@ export default function Manage_Client() {
     };
 
     useEffect(() => {
-        // Replace this with an actual API call to fetch client data
         setClient(clientData[client_id]);
         setReports(clientReports[client_id] || []);
     }, [client_id]);
@@ -35,48 +33,21 @@ export default function Manage_Client() {
         return <div className="p-20 text-center">Loading client data...</div>;
     }
     
-    // Action handler functions
-    const handleBlockNetwork = () => {
-        console.log(`Blocking network actions for client ${client.name}`);
-        // Implement API call to block network actions
+    // Updated action handlers to accept a report ID
+    const handleBlock = (reportId) => {
+        console.log(`Blocking network for report ID: ${reportId}`);
+        // Implement API call to block the specific report
     };
 
-    const handleKillProcesses = () => {
-        console.log(`Killing processes on client ${client.name}`);
-        // Implement API call to kill processes
-    };
-
-    const handleDeleteFiles = () => {
-        console.log(`Deleting harmful files on client ${client.name}`);
-        // Implement API call to delete files
+    const handleKillProcess = (reportId) => {
+        console.log(`Killing process for report ID: ${reportId}`);
+        // Implement API call to change the report status to 'Investigating'
     };
 
     return (
         <div className="p-20 w-screen h-screen flex flex-col items-center">
             <h1 className="pb-5 text-3xl font-bold underline">Manage Client: {client.name}</h1>
             <p className="mb-8 text-lg text-gray-600">IP Address: {client.ip}</p>
-            
-            {/* Action Buttons Section */}
-            <div className="flex gap-4 mb-12">
-                <button
-                    onClick={handleBlockNetwork}
-                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                >
-                    Block Network Actions
-                </button>
-                <button
-                    onClick={handleKillProcesses}
-                    className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded"
-                >
-                    Kill Processes
-                </button>
-                <button
-                    onClick={handleDeleteFiles}
-                    className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded" // Ensure text-white is used
-                >
-                    Delete Harmful Files
-                </button>
-            </div>
             
             {/* Reports Table Section */}
             <h2 className="text-2xl font-semibold mb-4">Detected Reports</h2>
@@ -86,7 +57,7 @@ export default function Manage_Client() {
                         <th className="p-4 border-b">Report ID</th>
                         <th className="p-4 border-b">Type</th>
                         <th className="p-4 border-b">Timestamp</th>
-                        <th className="p-4 border-b">Status</th>
+                        <th className="p-4 border-b">Actions</th> 
                     </tr>
                 </thead>
                 <tbody className="text-black">
@@ -96,12 +67,29 @@ export default function Manage_Client() {
                                 <td className="p-4 text-center">{report.id}</td>
                                 <td className="p-4 text-center">{report.type}</td>
                                 <td className="p-4 text-center">{report.timestamp}</td>
-                                <td className="p-4 text-center">{report.status}</td>
+                                <td className="p-4 text-center">
+                                    {/* Action buttons for each report */}
+                                    <div className="flex justify-center gap-2">
+                                        <button
+                                            onClick={() => handleBlock(report.id)}
+                                            className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded text-sm"
+                                        >
+                                            Block Network
+                                        </button>
+                                        <button
+                                            onClick={() => handleKillProcess(report.id)}
+                                            className="bg-orange-500 hover:bg-orange-700 text-white font-bold py-1 px-2 rounded text-sm"
+                                        >
+                                            Kill Process
+                                        </button>
+                                    
+                                    </div>
+                                </td>
                             </tr>
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="4" className="p-4 text-center text-gray-500">No reports found for this client.</td>
+                            <td colSpan="5" className="p-4 text-center text-gray-500">No reports found for this client.</td>
                         </tr>
                     )}
                 </tbody>
