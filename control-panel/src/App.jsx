@@ -8,6 +8,7 @@ import Statistics from './pages/statistics.jsx';
 import Endpoints from './pages/endpoints.jsx';
 import Manage_Client from './pages/manage_client.jsx';
 import Dashboard from './pages/dashboard.jsx';
+import NewClient from './pages/new_client.jsx';
 
 const App = () => {
 
@@ -21,6 +22,7 @@ const App = () => {
           <Route path ="/statistics" element = {<Statistics />} />
           <Route path ="/endpoints" element = {<Endpoints />} />
           <Route path ="/manage_client/:clientID" element = {<Manage_Client />} />
+          <Route path ="/new_client" element = {<NewClient />} />
         </Routes>
     </div>
     

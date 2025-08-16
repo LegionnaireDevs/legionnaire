@@ -11,12 +11,12 @@ const data = [
 
 export default function Statistics () {
     return (
-        <div class="p-20 w-screen h-screen justify-center items-center flex flex-col">  
-            <h1 class="text-3xl font-bold underline"> Statistics Page </h1>
+        <div className="p-20 w-screen h-screen justify-center items-center flex flex-col">  
+            <h1 className="text-3xl font-bold underline"> Statistics Page </h1>
 
-            <div class = "pt-20 grid grid-cols-2 gap-8 justify-center justify-items-center">
-                <div class='flex flex-col items-center'>
-                    <p class="text-2xl font-bold">Software Issues</p>
+            <div className = "pt-20 grid grid-cols-2 gap-8 justify-center justify-items-center">
+                <div className='flex flex-col items-center'>
+                    <p className="text-2xl font-bold">Software Issues</p>
                     <PieChart
                         series={[
                         {
@@ -32,7 +32,7 @@ export default function Statistics () {
                     />
                 </div>
                 
-                <div class='flex flex-col items-center'>
+                <div className='flex flex-col items-center'>
                     <p className="text-2xl font-bold">Network Issues</p>
 
                     <PieChart
