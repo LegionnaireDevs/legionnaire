@@ -5,4 +5,4 @@ pymongo
 dotenv
 flask_cors
 psutil
-
+pandas
