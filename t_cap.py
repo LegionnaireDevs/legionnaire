@@ -18,8 +18,7 @@ def sniff(interface):
     stopping, flushing, and restarting every 30 seconds. Data is appended
     to a master CSV file for the interface.
     """
-    # Sanitize the complex interface name to create a valid filename
-    # This will turn '\Device\NPF_{...}' into 'Device_NPF_...'
+
     safe_interface_name = "".join(c for c in interface if c.isalnum() or c in (' ', '_', '-')).rstrip()
     safe_interface_name = safe_interface_name.replace(' ', '_')
 
@@ -27,7 +26,6 @@ def sniff(interface):
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
 
-    # CRITICAL: Use the sanitized name for all file paths
     master_file_path = os.path.join(OUTPUT_DIR, f"{safe_interface_name}.csv")
     temp_file_path = os.path.join(OUTPUT_DIR, f"{safe_interface_name}_temp.csv")
 
@@ -35,9 +33,9 @@ def sniff(interface):
         while True:
             sniffer, session = create_sniffer(
                 input_file=None,
-                input_interface=interface, # Pass the original name to Scapy
+                input_interface=interface,
                 output_mode="csv",
-                output=temp_file_path,     # Pass the safe path to the file writer
+                output=temp_file_path,
                 verbose=False,
             )
 
