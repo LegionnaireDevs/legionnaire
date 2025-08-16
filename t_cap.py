@@ -6,7 +6,8 @@ import json
 import threading
 from cicflowmeter.sniffer import create_sniffer
 
-OUTPUT_DIR = "csv_output/"
+OUTPUT_DIR = "csv_output"
+API_URL = "http://127.0.0.1:5000"
 
 
 def sniff(interface):
@@ -20,7 +21,7 @@ def sniff(interface):
         input_file=None,
         input_interface=interface,
         output_mode="csv",
-        output=OUTPUT_DIR + interface + ".csv",
+        output=os.path.join(OUTPUT_DIR, f"{interface}.csv"),
         verbose=False,
     )
 
@@ -61,28 +62,26 @@ def send_csvs(interval=60):
     Every x amount of time, send the csvs to the server.
     """
     current_path = os.path.dirname(os.path.realpath(__file__))
+    output_path = os.path.join(current_path, OUTPUT_DIR)
     while True:
         send_files = [
             f
-            for f in os.listdir(current_path + "/" + OUTPUT_DIR)
-            if os.path.isfile(os.path.join(current_path + "/" + OUTPUT_DIR, f))
+            for f in os.listdir(output_path)
+            if os.path.isfile(os.path.join(output_path, f))
         ]
         for file in send_files:
             try:
+                file_path = os.path.join(output_path, file)
                 response = requests.post(
                     "http://127.0.0.1:5000",
-                    data={
-                        file: open(
-                            os.path.join(current_path + "/" + OUTPUT_DIR, file), "rb"
-                        )
-                    },
+                    data={file: open(file_path, "rb")},
                 )
             except Exception as e:
                 print(f"Error sending file {file}: {e}")
         time.sleep(5)
 
 
-def main():
+def run():
     threads = []
     interfaces = fetch_interfaces()
     for interface in interfaces:
@@ -101,4 +100,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    run()
