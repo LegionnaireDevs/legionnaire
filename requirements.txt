@@ -7,3 +7,5 @@ flask_cors
 psutil
 pandas
 pystray
+xgboost
+scikit-learn
