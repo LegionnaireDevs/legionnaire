@@ -7,6 +7,10 @@ import json
 from pathlib import Path
 import pandas as pd
 import os, threading, time
+from datetime import datetime
+
+MALWARE_RESULTS = [] 
+SUS_LOGS = []
 
 app = Flask(__name__)
 CORS(app)
@@ -35,12 +39,10 @@ def unique_target(name: str) -> Path:
             return candidate
         i += 1
 
-# --- health check (for quick pings) ---
 @app.get("/api/health")
 def health():
     return jsonify({"status": "ok"})
 
-# --- receive CSVs from your t_cap sender (no changes required) ---
 @app.post("/")
 def receive_csv():
     saved = []
@@ -49,7 +51,6 @@ def receive_csv():
     # Example: requests.post(..., data={ "eth0.csv": open("eth0.csv", "rb") })
     if request.files:
         for field_name, storage in request.files.items():
-            # Prefer the real filename if present, else fall back to the field name
             orig = storage.filename or field_name
             if not allowed_file(orig):
                 continue
@@ -87,7 +88,6 @@ def receive_csv():
         return jsonify({"ok": False, "error": "No CSV received"}), 400
     return jsonify({"ok": True, "saved": saved}), 201
 
-# --- list / download helpers (optional) ---
 @app.get("/api/uploads")
 def list_uploads():
     files = sorted(p.name for p in UPLOAD_DIR.glob("*.csv"))
@@ -121,7 +121,6 @@ def hash_report():
     if not payload:
         return jsonify({"ok": False, "error": "no data"}), 400
 
-    # (optional) persist so you can inspect later
     out = (UPLOAD_DIR / "hash_reports.jsonl")
     out.parent.mkdir(parents=True, exist_ok=True)
     with out.open("a", encoding="utf-8") as f:
@@ -129,11 +128,8 @@ def hash_report():
 
     return jsonify({"ok": True})
 
-# --- top-level (near other imports/vars)
-from datetime import datetime
-MALWARE_RESULTS = []   # in-memory store
 
-# --- add these endpoints ---
+
 @app.post("/api/malware-result")
 def malware_result():
     try:
@@ -343,16 +339,12 @@ def convert_csv_format(input_filepath, output_filepath):
     ]
 
     try:
-        # Read the original CSV file into a DataFrame
         df = pd.read_csv(input_filepath)
 
-        # Rename the columns using the mapping
         df.rename(columns=header_mapping, inplace=True)
 
-        # Handle the duplicate FwdHeaderLength.1 by creating a copy
         df["FwdHeaderLength.1"] = df["FwdHeaderLength"]
 
-        # Reorder and select the columns for the final output
         final_column_order = new_column_order[:]  # Make a copy
         final_column_order[final_column_order.index("FwdHeaderLength", 50)] = (
             "FwdHeaderLength.1"
@@ -389,6 +381,47 @@ def _start_background_threads_once():
 
 def _kickoff_bg():
     _start_background_threads_once()
+
+
+@app.post("/api/logs")
+def create_sus_log():
+    msg = None
+
+    # Prefer JSON: {"sus_log": "…"} or raw JSON string "…"
+    if request.is_json:
+        payload = request.get_json(silent=True)
+        if isinstance(payload, str):
+            msg = payload.strip()
+        elif isinstance(payload, dict):
+            val = payload.get("sus_log")
+            if isinstance(val, str):
+                msg = val.strip()
+
+    # Fallback: form-encoded sus_log=...
+    if msg is None and request.form:
+        val = request.form.get("sus_log")
+        if isinstance(val, str):
+            msg = val.strip()
+
+    # Fallback: raw text/plain body
+    if msg is None:
+        raw = request.get_data(as_text=True)
+        if raw:
+            msg = raw.strip()
+
+    if not msg:
+        return jsonify({"ok": False, "error": "sus_log string required"}), 400
+
+    SUS_LOGS.append(msg)
+    # persist each line to a file for durability
+    with (UPLOAD_DIR / "sus_logs.txt").open("a", encoding="utf-8") as f:
+        f.write(msg + "\n")
+
+    return jsonify({"ok": True}), 201
+
+@app.get("/api/logs")
+def list_sus_logs():
+    return jsonify({"sus_logs": SUS_LOGS})
 
 if __name__ == "__main__":
     # Keep localhost; change host to "0.0.0.0" if you need LAN access
