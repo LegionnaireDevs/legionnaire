@@ -59,6 +59,9 @@ export default function Endpoints() {
                             <thead className="bg-gradient-to-r from-purple-600/30 to-blue-600/30 border-b border-white/10 sticky top-0">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                                        Endpoint ID
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
                                         Endpoint Name
                                     </th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
@@ -79,10 +82,13 @@ export default function Endpoints() {
                                         className="hover:bg-white/5 transition-colors duration-200 group"
                                     >
                                         <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-500 to-red-500 flex items-center justify-center text-white text-sm font-bold mr-3">
+                                                {client.id}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
-                                                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center text-white text-sm font-bold mr-3">
-                                                    {client.id}
-                                                </div>
+                                                
                                                 <div className="text-white font-medium group-hover:text-blue-300 transition-colors">
                                                     {client.name}
                                                 </div>

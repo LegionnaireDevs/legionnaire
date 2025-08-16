@@ -1,4 +1,5 @@
 import React from "react";
+
 export default function ProgramAnalysis() {
     const programData = [
         { id: 1, hash: "e6b50dd767cc99afa4393cb1c93e87314cd415bdecb6b6f7ed6596411dd2f61e", timestamp: "16/08/25 18:42", result: "Trojan" },
@@ -10,17 +11,55 @@ export default function ProgramAnalysis() {
         { id: 7, hash: "e6b50dd767cc99afa4393cb1c93e87314cd415bdecb6b6f7ed6596411dd2f61e", timestamp: "16/08/25 18:42", result: "Trojan" },
         { id: 8, hash: "e6b50dd767cc99afa4393cb1c93e87314cd415bdecb6b6f7ed6596411dd2f61e", timestamp: "16/08/25 18:42", result: "Trojan" }
     ];
+
+    const getThreatColor = (result) => {
+        switch (result.toLowerCase()) {
+            case 'trojan':
+                return 'bg-red-500/20 text-red-300 border-red-500/30';
+            case 'backdoor':
+            case 'anydesk backdoor':
+                return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
+            case 'rat':
+            case 'remote execution':
+                return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
+            case 'crypto drainer':
+                return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
+            default:
+                return 'bg-red-500/20 text-red-300 border-red-500/30';
+        }
+    };
+
     return (
-            <div className="min-h-screen w-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-                 <div className="p-6 w-screen h-screen flex flex-col items-start justify-start">
-                    <h1 className="text-3xl font-bold"> Program Analysis </h1>
-                    <p className="pt-2 text-xl mb-8">Hashes all running executables on client endpoints. Malicious hashes will be displayed here.</p>
-                    
-                    
-                    <div className="w-full max-w-7xl bg-black/20 backdrop-blur-lg rounded-xl border border-white/10 shadow-2xl overflow-hidden">
-                    <div className="overflow-x-auto">
+        <div className="min-h-screen max-h-screen w-full max-w-full relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+            {/* Floating particles */}
+            <div className="absolute top-16 left-1/3 w-1.5 h-1.5 bg-white rounded-full animate-pulse delay-300"></div>
+            <div className="absolute bottom-32 right-1/3 w-2.5 h-2.5 bg-white rounded-full animate-bounce delay-1200"></div>
+            <div className="absolute top-1/3 left-16 w-1 h-1 bg-white rounded-full animate-ping delay-800"></div>
+            <div className="absolute bottom-1/4 left-1/2 w-2 h-2 bg-white rounded-full animate-pulse delay-400"></div>
+            <div className="absolute top-2/3 right-16 w-1.5 h-1.5 bg-white rounded-full animate-bounce delay-900"></div>
+            <div className="absolute top-20 right-1/2 w-1 h-1 bg-white rounded-full animate-ping delay-600"></div>
+            <div className="absolute bottom-16 left-1/5 w-2.5 h-2.5 bg-white rounded-full animate-pulse delay-1100"></div>
+            <div className="absolute top-1/2 left-1/6 w-1.5 h-1.5 bg-white rounded-full animate-bounce delay-200"></div>
+            <div className="absolute bottom-1/3 right-1/5 w-1 h-1 bg-white rounded-full animate-ping delay-1300"></div>
+            <div className="absolute top-3/4 left-2/3 w-2 h-2 bg-white rounded-full animate-pulse delay-500"></div>
+            <div className="absolute bottom-20 right-2/3 w-1.5 h-1.5 bg-white rounded-full animate-bounce delay-700"></div>
+            <div className="absolute top-40 left-3/4 w-1 h-1 bg-white rounded-full animate-ping delay-1000"></div>
+            <div className="absolute bottom-40 left-1/2 w-2.5 h-2.5 bg-white rounded-full animate-pulse delay-400"></div>
+            <div className="absolute top-1/6 right-1/4 w-1.5 h-1.5 bg-white rounded-full animate-bounce delay-800"></div>
+            <div className="absolute bottom-1/6 left-3/5 w-1 h-1 bg-white rounded-full animate-ping delay-600"></div>
+
+            <div className="p-6 h-full flex flex-col">
+                {/* Header Container */}
+                <div className="w-full max-w-7xl mx-auto mb-8">
+                    <h1 className="text-3xl font-bold text-white mb-2">Program Analysis</h1>
+                    <p className="text-xl text-gray-300">Hashes all running executables on client endpoints. Malicious hashes will be displayed here.</p>
+                </div>
+
+                {/* Analysis Table */}
+                <div className="w-full max-w-7xl mx-auto bg-black/20 backdrop-blur-lg rounded-xl border border-white/10 shadow-2xl overflow-hidden flex-1">
+                    <div className="overflow-x-auto h-full">
                         <table className="w-full">
-                            <thead className="bg-gradient-to-r from-purple-600/30 to-blue-600/30 border-b border-white/10">
+                            <thead className="bg-gradient-to-r from-purple-600/30 to-blue-600/30 border-b border-white/10 sticky top-0">
                                 <tr>
                                     <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
                                         ID
@@ -28,11 +67,11 @@ export default function ProgramAnalysis() {
                                     <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
                                         Hash
                                     </th>
-                                    <th className="px-30 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
                                         TimeStamp
                                     </th>
                                     <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
-                                        Result
+                                        Threat Type
                                     </th>
                                 </tr>
                             </thead>
@@ -44,23 +83,23 @@ export default function ProgramAnalysis() {
                                     >
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <div className="flex items-center">
-                                                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-red-500 to-orange-500 flex items-center justify-center text-white text-sm font-bold">
+                                                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-500 to-red-500 flex items-center justify-center text-white text-sm font-bold mr-3">
                                                     {log.id}
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="text-white font-medium group-hover:text-red-300 transition-colors">
+                                            <div className="text-white font-medium group-hover:text-red-300 transition-colors font-mono text-sm break-all">
                                                 {log.hash}
                                             </div>
                                         </td>
-                                        <td className="px-30 py-4">
-                                            <div className="text-white font-medium group-hover:text-red-300 transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-white font-medium group-hover:text-blue-300 transition-colors">
                                                 {log.timestamp}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="text-white font-medium group-hover:text-red-300 transition-colors">
+                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getThreatColor(log.result)}`}>
                                                 {log.result}
                                             </span>
                                         </td>
@@ -72,5 +111,5 @@ export default function ProgramAnalysis() {
                 </div>
             </div>
         </div>
-    );  
+    );
 }
