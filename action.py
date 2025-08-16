@@ -1,6 +1,17 @@
 import platform
 import os
 import subprocess
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+
+@app.route("/killprocess", methods=["POST"])
+def ApiKillProcess():
+    data = request.get_json()
+    processName = data.get("processName")
+    response = KillProcess(processName)
+    return jsonify({"response": response})
 
 
 def KillProcess(processName):
@@ -17,6 +28,15 @@ def KillProcess(processName):
     if userOS == "Windows":
         cmd = f"Stop-Process -Name {processName} -Force"
         subprocess.run(["powershell", "-Command", cmd])
+
+
+@app.route("/deletefile", methods=["POST"])
+def ApiDeleteFile():
+    data = request.get_json()
+    location = data.get("location")
+    recurse = data.get("recurse")
+    response = DeleteFile(location, recurse)
+    return jsonify({"response": response})
 
 
 def DeleteFile(location, recurse):
@@ -41,6 +61,19 @@ def DeleteFile(location, recurse):
         subprocess.run(cmd, shell=True)
     if userOS == "Windows":
         subprocess.run(["powershell", "-Command", cmd])
+
+
+@app.route("/createfirewallrule", methods=["POST"])
+def ApiCreateFirewallRule():
+    data = request.get_json()
+    direction = data.get("direction")
+    source = data.get("source")
+    dest = data.get("dest")
+    action = data.get("action")
+    port = data.get("port")
+    protocol = data.get("protocol")
+    response = CreateFirewallRule(direction, source, dest, action, port, protocol)
+    return jsonify({"response": response})
 
 
 def CreateFirewallRule(direction, source, dest, action, port, protocol):
