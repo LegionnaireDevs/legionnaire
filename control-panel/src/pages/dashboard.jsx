@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"; // <-- import useNavigate
 import StatCard from "../components/StatCard.jsx";
 import Endpoints from "../pages/endpoints.jsx"; 
 import Statistics from "../pages/statistics.jsx"; 
-import Manage_Client from "../pages/manage_client.jsx"; 
+import Logs from "../pages/logs.jsx";
 
 
 export default function Dashboard() {
@@ -13,7 +13,7 @@ export default function Dashboard() {
     const menuItems = [
         { id: 'statistics', label: 'Statistics'},
         { id: 'endpoints', label: 'Endpoints'},
-        { id: 'manage_client', label: 'Manage Clients'}
+        { id: 'logs', label: 'All Logs'}
     ];
 
     const renderContent = () => {
@@ -22,8 +22,8 @@ export default function Dashboard() {
                 return <Statistics />;
             case 'endpoints':
                 return <Endpoints />;
-            case 'manage_client':
-                return <Manage_Client/>;
+            case 'logs':
+                return <Logs/>;
             default:
                 return <Statistics />;
         }
