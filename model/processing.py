@@ -3,8 +3,9 @@ import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 
 TARGET = 'Label'
+OUTPUT_FP = 'model/data/processed/processed.csv'
 
-attack_encode = {'BENIGN': 0, 'DDoS': 1, 'PortScan': 2, 'Bot': 3, 'Infiltration': 4, 'WebAttackAttackBruteForce': 5,
+attack_encode = {'BENIGN': 0, 'DDoS': 1, 'PortScan': 2, 'Bot': 3, 'Infiltration': 4, 'WebAttackBruteForce': 5,
                  'WebAttackXSS': 6, 'WebAttackSqlInjection': 7, 'FTP-Patator': 8, 'SSH-Patator': 9,
                  'DoSslowloris': 10, 'DoSSlowhttptest': 11, 'DoSHulk': 12, 'DoSGoldenEye': 13,
                  'Heartbleed': 14,}
@@ -42,8 +43,11 @@ df.dropna(inplace=True)
 
 print(np.isinf(df).sum().sum())
 
-df.to_csv("model/data/processed/processed.csv")
+print(df[TARGET].unique())
 
+print("Writing to file.")
+df.to_csv(OUTPUT_FP, index=False)
+print("Finished writing to file.")
 
 # print(df.isnull().sum())
 
