@@ -68,10 +68,8 @@ def sniff(interface):
                     for row in reader:
                         writer.writerow(row)
 
-                os.remove(temp_file_path)
-                print(
-                    f"Appended data to {master_file_path} and removed temporary file."
-                )
+                    t_file.close()
+                    m_file.close()
 
             print(f"Restarting sniffer on {interface}.")
 
@@ -79,9 +77,6 @@ def sniff(interface):
         print(f"\nAnalysis manually stopped for interface {interface}.")
     except Exception as e:
         print(f"An error occurred on interface {interface}: {e}")
-    finally:
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
 
 
 def fetch_interfaces():
