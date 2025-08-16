@@ -8,6 +8,7 @@ from pathlib import Path
 import pandas as pd
 import os, threading, time
 from datetime import datetime
+import model.model_predict as mp
 
 MALWARE_RESULTS = []
 SUS_LOGS = []
@@ -159,8 +160,8 @@ def create_sus_log():
 @app.get("/api/logs")
 def list_sus_logs():
     return jsonify({"sus_logs": SUS_LOGS})
-  
-  
+
+
 @app.post("/api/register")
 def register_client():
     """
@@ -177,7 +178,7 @@ def register_client():
     """
     payload = request.get_json(silent=True) or {}
     client_id = (payload.get("id") or "").strip()
-    host      = (payload.get("hostname") or "").strip()
+    host = (payload.get("hostname") or "").strip()
 
     if not client_id or not host:
         return jsonify({"ok": False, "error": "id and hostname required"}), 400
@@ -191,11 +192,17 @@ def register_client():
         app.logger.warning("Could not write registered snapshot: %s", exc)
 
     status_code = 201 if is_new else 200
-    return jsonify({
-        "ok": True,
-        "already": not is_new,
-        "client": REGISTERED_CLIENTS[client_id],
-    }), status_code
+    return (
+        jsonify(
+            {
+                "ok": True,
+                "already": not is_new,
+                "client": REGISTERED_CLIENTS[client_id],
+            }
+        ),
+        status_code,
+    )
+
 
 @app.get("/api/clients")
 def list_clients():
@@ -423,7 +430,10 @@ def convert_csv_format(input_filepath, output_filepath):
         )
 
         df_converted = df[final_column_order]
-        df_converted.to_csv(output_filepath, index=False)
+        predicted = mp.predict(df_converted)
+
+        df["Label"] = predicted["Label"]
+        df.to_csv(input_filepath, index=False)
 
         print(f"Successfully converted '{input_filepath}' to '{output_filepath}'")
     except FileNotFoundError:
@@ -444,17 +454,5 @@ def _converter_loop():
         time.sleep(5)
 
 
-def _start_background_threads_once():
-    global _converter_started
-    if not _converter_started:
-        threading.Thread(target=_converter_loop, daemon=True).start()
-        _converter_started = True
-
-
-def _kickoff_bg():
-    _start_background_threads_once()
-
 if __name__ == "__main__":
-    if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
-        _kickoff_bg()
     app.run(host="127.0.0.1", port=5000, debug=True, threaded=True)

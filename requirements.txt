@@ -6,3 +6,5 @@ dotenv
 flask_cors
 psutil
 pandas
+xgboost
+scikit-learn
