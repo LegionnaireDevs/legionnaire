@@ -10,6 +10,7 @@ import Manage_Client from './pages/manage_client.jsx';
 import Dashboard from './pages/dashboard.jsx';
 import NewClient from './pages/new_client.jsx';
 import Login from './pages/login.jsx';
+import Logs from './pages/logs.jsx';
 
 const App = () => {
 
@@ -25,6 +26,7 @@ const App = () => {
           <Route path ="/endpoints" element = {<Endpoints />} />
           <Route path ="/manage_client/:clientID" element = {<Manage_Client />} />
           <Route path ="/new_client" element = {<NewClient />} />
+          <Route path ="/logs" element = {<Logs />} />
         </Routes>
     </div>
     
