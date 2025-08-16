@@ -9,3 +9,5 @@ venv
 env
 .env
 uploads/
+
+*.ini
