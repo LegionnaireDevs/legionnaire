@@ -8,7 +8,7 @@ import csv
 from cicflowmeter.sniffer import create_sniffer
 
 OUTPUT_DIR = "csv_output"
-API_URL = "http://127.0.0.1:5000"
+API_URL = "http://127.0.0.1:5000/api/flow"
 INTERVAL = 10
 
 
@@ -19,8 +19,10 @@ def sniff(interface):
     to a master CSV file for the interface.
     """
 
-    safe_interface_name = "".join(c for c in interface if c.isalnum() or c in (' ', '_', '-')).rstrip()
-    safe_interface_name = safe_interface_name.replace(' ', '_')
+    safe_interface_name = "".join(
+        c for c in interface if c.isalnum() or c in (" ", "_", "-")
+    ).rstrip()
+    safe_interface_name = safe_interface_name.replace(" ", "_")
 
     print(f"Starting network traffic analysis on {interface}...")
     if not os.path.exists(OUTPUT_DIR):
@@ -94,7 +96,7 @@ def fetch_interfaces():
     return result
 
 
-def send_csvs():
+def send_csvs(id):
     """
     Every x amount of time, send the csvs to the server with raw data in the request body.
     """
@@ -118,7 +120,11 @@ def send_csvs():
                         print(f"Skipping empty file: {file}")
                         continue
 
-                    headers = {"Content-Type": "text/csv", "X-Filename": file}
+                    headers = {
+                        "Content-Type": "text/csv",
+                        "X-Filename": file,
+                        "ID": str(id),
+                    }
                     response = requests.post(API_URL, data=file_body, headers=headers)
                     response.raise_for_status()
 
@@ -136,7 +142,7 @@ def send_csvs():
         time.sleep(INTERVAL)
 
 
-def run():
+def run(id):
     processes = []
     interfaces = fetch_interfaces()
     if not interfaces:
@@ -149,7 +155,7 @@ def run():
         processes.append(p)
 
     print("Creating process for sending CSVs...")
-    p_sender = multiprocessing.Process(target=send_csvs)
+    p_sender = multiprocessing.Process(target=send_csvs, args=(id,))
     processes.append(p_sender)
 
     for p in processes:
@@ -166,4 +172,4 @@ def run():
 
 
 if __name__ == "__main__":
-    run()
+    run(0)

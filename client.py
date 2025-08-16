@@ -1,21 +1,22 @@
 import pystray
 from PIL import Image, ImageDraw
-import time 
+import time
 import json
-from flask import Flask
 
 import threading
 import requests
 import os
+import multiprocessing
 
 import uuid
 import socket
 import configparser
 
-# === import the functions from your other scripts ===
-from log import sysLogs                   # one-shot scan/print
-from processes import processList         # one-shot pass
-from t_cap import run as tcap_run         # long-running capture
+from log import sysLogs
+from processes import processList
+from t_cap import run as tcap_run
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 id = ""
 hostname = ""
@@ -26,24 +27,17 @@ def start_tray():
     def quit_action(icon, item):
         icon.stop()
 
-    image = Image.open("app.ico")
+    icon_path = os.path.join(BASE_DIR, "app.ico")
+    image = Image.open(icon_path)
+
     menu = (pystray.MenuItem("Quit", quit_action),)
     icon = pystray.Icon("Legionnaire", image, "Legionnaire", menu)
     icon.run()
 
 
-def quit():
-    os._exit(0)
-
-
-def api():
-    app = Flask(__name__)
-    app.run(use_reloader=False, debug=True, port=5000)
-
-
 def create_config():
     global id, hostname
-    id = uuid.uuid1()
+    id = str(uuid.uuid1())
     hostname = socket.gethostname()
 
     config = configparser.ConfigParser()
@@ -75,58 +69,90 @@ def read_config():
         return False
 
 
-# def register_with_control():
-#     global id, hostname
-#     print(f"Registering with control server: {hostname} {id}")
-#     response = requests.post(
-#         "http://localhost:5000/register", json={"hostname": hostname, "id": str(id)}
-#     )
+def register_with_control():
+    global id, hostname
+    print(f"Registering with control server: {hostname} {id}")
+    response = requests.post(
+        "http://localhost:5000/register", json={"hostname": hostname, "id": str(id)}
+    )
 
-# ---------- simple workers (no classes) ----------
 
-def logs_worker(interval=60):
+def logs_worker(interval=60, id=""):
     while True:
         try:
-            sysLogs()              # prints and/or posts if suspicious
+            sysLogs(id)
         except Exception as e:
             print("logs_worker error:", e)
         time.sleep(interval)
 
-def processes_worker(interval=300):
+
+def processes_worker(interval=300, id=""):
     while True:
         try:
-            processList()          # does its one pass
+            processList(id)
         except Exception as e:
             print("processes_worker error:", e)
         time.sleep(interval)
 
-def tcap_worker():
+
+def tcap_worker(id=""):
     try:
-        tcap_run()                 # blocks forever internally
+        tcap_run(id)
     except Exception as e:
         print("tcap_worker error:", e)
 
-# -------------------------------------------------
+
+def run_as_user(target_func):
+    """
+    Wrapper to drop root privileges and run a function as the original user.
+    """
+    try:
+        uid = int(os.environ.get("SUDO_UID"))
+        gid = int(os.environ.get("SUDO_GID"))
+
+        os.setgid(gid)
+        os.setuid(uid)
+
+        target_func()
+    except (KeyError, TypeError):
+        target_func()
+
 
 def main():
     if not read_config():
         create_config()
-    # register_with_control()
+    register_with_control()
 
-    threads = []
-    threads.append(threading.Thread(target=start_tray))
-    threads.append(threading.Thread(target=logs_worker))
-    threads.append(threading.Thread(target=processes_worker))
-    threads.append(threading.Thread(target=tcap_worker))
+    processes = []
 
-    # threads.append(threading.Thread(target=api))
+    tray_process = multiprocessing.Process(target=run_as_user, args=(start_tray,))
+    processes.append(tray_process)
 
-    
-    for thread in threads:
-        thread.start()
+    processes.append(
+        threading.Thread(
+            target=logs_worker,
+            args=(
+                60,
+                id,
+            ),
+        )
+    )
+    processes.append(
+        threading.Thread(
+            target=processes_worker,
+            args=(
+                300,
+                id,
+            ),
+        )
+    )
+    processes.append(threading.Thread(target=tcap_worker, args=(id,)))
 
-    for thread in threads:
-        thread.join()
+    for p in processes:
+        p.start()
+
+    for p in processes:
+        p.join()
 
 
 if __name__ == "__main__":

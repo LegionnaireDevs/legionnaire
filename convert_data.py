@@ -1,202 +1,4 @@
-# api.py
-from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
-from pathlib import Path
-from werkzeug.utils import secure_filename
-import json
-from pathlib import Path
 import pandas as pd
-import os, threading, time
-from datetime import datetime
-
-MALWARE_RESULTS = []
-SUS_LOGS = []
-ALLOWED_EXTENSIONS = {"csv"}
-UPLOAD_DIR = Path(__file__).parent / "uploads"
-UPLOAD_DIR.mkdir(exist_ok=True)
-CONVERTED_DIR = UPLOAD_DIR / "converted"
-CONVERTED_DIR.mkdir(exist_ok=True)
-
-_converter_started = False
-
-app = Flask(__name__)
-CORS(app)
-app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
-
-
-@app.get("/api/health")
-def health():
-    return jsonify({"status": "ok"})
-
-
-@app.post("/api/flow")
-def receive_csv():
-    saved = []
-
-    if request.files:
-        sender_id = (request.headers.get("ID") or "").strip()
-        for field_name, storage in request.files.items():
-            orig = storage.filename or field_name
-            if not allowed_file(orig):
-                continue
-            target = unique_target(orig, sender_id)
-            storage.save(target)
-            convert_csv(target, sender_id)
-            saved.append(target.name)
-
-    else:
-        body = request.get_data()
-        sender_id = (request.headers.get("ID") or "").strip()
-        xname = (request.headers.get("X-Filename") or "").strip()
-        if body and xname and allowed_file(xname):
-            target = unique_target(xname, sender_id)
-            with target.open("wb") as f:
-                f.write(body)
-            saved.append(target.name)
-            convert_csv(target, sender_id)
-
-    if not saved:
-        return jsonify({"ok": False, "error": "No CSV received"}), 400
-    return jsonify({"ok": True, "saved": saved}), 201
-
-
-@app.get("/api/uploads")
-def list_uploads():
-    """Lists all uploaded CSV files from all sender directories."""
-    files = sorted(str(p.relative_to(UPLOAD_DIR)) for p in UPLOAD_DIR.rglob("*.csv"))
-    return jsonify({"files": files})
-
-
-@app.get("/api/uploads/<path:name>")
-def download_upload(name):
-    return send_from_directory(UPLOAD_DIR, name, as_attachment=True)
-
-
-@app.get("/api/hello")
-def hello():
-    return jsonify({"message": "Hello from Flask API, my name is Sean"})
-
-
-@app.post("/api/add")
-def add():
-    data = request.get_json(force=True) or {}
-    return jsonify({"result": data.get("a", 0) + data.get("b", 0)})
-
-
-@app.get("/api/site-info")
-def site_info():
-    return jsonify(
-        {
-            "name": "Legionnaire Control Panel",
-            "version": "0.1.0",
-            "environment": "development",
-            "backend": "Flask",
-        }
-    )
-
-
-@app.post("/api/hash-report")
-def hash_report():
-    global UPLOAD_DIR
-    payload = request.get_json(silent=True) or {}
-    if not payload:
-        return jsonify({"ok": False, "error": "no data"}), 400
-
-    out = UPLOAD_DIR / "hash_reports.jsonl"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    with out.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(payload) + "\n")
-
-    return jsonify({"ok": True})
-
-
-@app.post("/api/malware-result")
-def malware_result():
-    try:
-        payload = request.get_json(force=True) or {}
-    except Exception:
-        return jsonify({"ok": False, "error": "bad json"}), 400
-
-    item = {
-        "hash": payload.get("hash") or "",
-        "results": payload.get("results") or {},
-        "received_at": datetime.utcnow().isoformat() + "Z",
-        "id": payload.get("id") or "",
-    }
-    MALWARE_RESULTS.append(item)
-    app.logger.info(f"Saved malware result for {item['hash']}")
-    return jsonify({"ok": True}), 201
-
-
-@app.get("/api/malware-results")
-def malware_results():
-    return jsonify(MALWARE_RESULTS)
-
-
-@app.post("/api/logs")
-def create_sus_log():
-    msg = None
-
-    if request.is_json:
-        payload = request.get_json(silent=True)
-        if isinstance(payload, dict):
-            val = payload.get("sus_log")
-            id = payload.get("id") or ""
-            if isinstance(val, str):
-                msg = val.strip()
-
-    if not msg:
-        return jsonify({"ok": False, "error": "sus_log string required"}), 400
-
-    SUS_LOGS.append(msg)
-    with (UPLOAD_DIR / "sus_logs.txt").open("a", encoding="utf-8") as f:
-        f.write(msg + "\n")
-
-    return jsonify({"ok": True}), 201
-
-
-@app.get("/api/logs")
-def list_sus_logs():
-    return jsonify({"sus_logs": SUS_LOGS})
-
-
-def allowed_file(name: str) -> bool:
-    return "." in name and name.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
-def unique_target(name: str, sender_id: str) -> Path:
-    """Creates a unique path for an upload, inside a sender-specific directory."""
-    safe = secure_filename(name) or "upload.csv"
-    sender_dir = UPLOAD_DIR / (sender_id or "_unknown_sender")
-    sender_dir.mkdir(parents=True, exist_ok=True)
-
-    target = sender_dir / safe
-    if not target.exists():
-        return target
-
-    stem, suffix = target.stem, target.suffix
-    i = 1
-    while True:
-        candidate = sender_dir / f"{stem}_{i}{suffix}"
-        if not candidate.exists():
-            return candidate
-        i += 1
-
-
-def convert_csv(csv_path: Path, sender_id: str):
-    """Convert csv_path -> converted/<name>_converted.csv (once)."""
-    try:
-        sender_out_dir = CONVERTED_DIR / (sender_id or "_unknown_sender")
-        sender_out_dir.mkdir(parents=True, exist_ok=True)
-
-        out = sender_out_dir / f"{csv_path.stem}.csv"
-
-        if out.exists():
-            return
-        convert_csv_format(str(csv_path), str(out))
-        app.logger.info(f"Converted {csv_path.name} -> {out.name}")
-    except Exception as e:
-        app.logger.exception(f"Convert error for {csv_path}: {e}")
 
 
 def convert_csv_format(input_filepath, output_filepath):
@@ -371,19 +173,27 @@ def convert_csv_format(input_filepath, output_filepath):
     ]
 
     try:
+        # Read the original CSV file into a DataFrame
         df = pd.read_csv(input_filepath)
+
+        # Rename the columns using the mapping
         df.rename(columns=header_mapping, inplace=True)
+
+        # Handle the duplicate FwdHeaderLength.1 by creating a copy
         df["FwdHeaderLength.1"] = df["FwdHeaderLength"]
 
+        # Reorder and select the columns for the final output
         final_column_order = new_column_order[:]  # Make a copy
         final_column_order[final_column_order.index("FwdHeaderLength", 50)] = (
             "FwdHeaderLength.1"
         )
 
         df_converted = df[final_column_order]
+
         df_converted.to_csv(output_filepath, index=False)
 
         print(f"Successfully converted '{input_filepath}' to '{output_filepath}'")
+
     except FileNotFoundError:
         print(f"Error: The file '{input_filepath}' was not found.")
     except KeyError as e:
@@ -392,28 +202,9 @@ def convert_csv_format(input_filepath, output_filepath):
         print(f"An unexpected error occurred: {e}")
 
 
-def _converter_loop():
-    while True:
-        try:
-            for p in UPLOAD_DIR.glob("*.csv"):
-                convert_csv(p)
-        except Exception as e:
-            app.logger.exception(f"Background converter loop error: {e}")
-        time.sleep(5)
-
-
-def _start_background_threads_once():
-    global _converter_started
-    if not _converter_started:
-        threading.Thread(target=_converter_loop, daemon=True).start()
-        _converter_started = True
-
-
-def _kickoff_bg():
-    _start_background_threads_once()
-
-
 if __name__ == "__main__":
-    if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or not app.debug:
-        _kickoff_bg()
-    app.run(host="127.0.0.1", port=5000, debug=True, threaded=True)
+    input_file = "test.csv"
+
+    output_file = "converted_data.csv"
+
+    convert_csv_format(input_file, output_file)
