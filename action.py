@@ -86,7 +86,7 @@ def CreateFirewallRule(direction, source, dest, action, port, protocol):
     dest:       Destination IP.
     action:     "allow" or "block" for Windows.
                 "ACCEPT" or "DROP" for Linux.
-    port:       "port to apply to."
+    port:       Port to apply to.
     protocol:   "tcp" or "udp".
     """
 
@@ -95,20 +95,64 @@ def CreateFirewallRule(direction, source, dest, action, port, protocol):
     if userOS == "Linux":
         if VerifyIptables(direction, action, protocol):
             cmd = f"iptables -t filter -A {direction} -s {source} -d {dest} -p {protocol} --dport {port} -j {action}"
+            subprocess.run(cmd, shell=True)
+            subprocess.run("iptables-save > ./iptablesRule.v4", shell=True)
         else:
             return
     elif userOS == "Windows":
         if VerifyNetsh(direction, action, protocol):
-            name = action + "_" + dest
             cmd = (
-                f"netsh advfirewall firewall add rule name={name}"
+                f"netsh advfirewall firewall add rule name={dest}"
                 f"dir={direction} action={action} protocol={protocol} localip={source} remoteip={dest}"
             )
+            subprocess.run(cmd, shell=True)
         else:
             return
     else:
         return "Unsupported OS"
-    subprocess.run(cmd, shell=True)
+
+
+@app.route("/deletefirewallrule", methods=["POST"])
+def ApiDeleteFirewallRule():
+    data = request.get_json()
+    direction = data.get("direction")
+    source = data.get("source")
+    dest = data.get("dest")
+    action = data.get("action")
+    port = data.get("port")
+    protocol = data.get("protocol")
+    response = DeleteFirewallRule(direction, source, dest, action, port, protocol)
+    return jsonify({"response": response})
+
+
+def DeleteFirewallRule(direction, source, dest, action, port, protocol):
+    """
+    Deletes an existing firewall rule.
+    direction:  "in" or "out" for Windows.
+                "INPUT" or "OUTPUT" for Linux.
+    source:     Host IP.
+    dest:       Destination IP.
+    action:     "allow" or "block" for Windows.
+                "ACCEPT" or "DROP" for Linux.
+    port:       Port to apply to.
+    protocol:   "tcp" or "udp".
+    """
+    userOS = platform.system()
+
+    if userOS == "Linux":
+        if VerifyIptables(direction, action, protocol):
+            cmd = f"iptables -t filter -D {direction} -s {source} -d {dest} -p {protocol} --dport {port} -j {action}"
+            subprocess.run(cmd, shell=True)
+        else:
+            return
+    elif userOS == "Windows":
+        if VerifyNetsh(direction, action, protocol):
+            cmd = f"netsh advfirewall firewall delete rule name={dest}"
+            subprocess.run(cmd, shell=True)
+        else:
+            return
+    else:
+        return "Unsupported OS"
 
 
 def VerifyIptables(direction, action, protocol):
@@ -135,7 +179,7 @@ def VerifyNetsh(direction, action, protocol):
 
     direction:  "in" or "out".
     action:     "allow" or "block".
-    protocol:       "tcp" or "udp".
+    protocol:   "tcp" or "udp".
     """
     flag = True
     if direction != "in" and direction != "out":
