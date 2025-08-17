@@ -1,5 +1,4 @@
 from xgboost import XGBClassifier
-import xgboost as xgb
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, f1_score, ConfusionMatrixDisplay, classification_report
 
 TARGET = 'Label'
-MODEL_FP = 'model/models/run9_bi.ubj'
+MODEL_FP = 'model/models/run14_bi.ubj'
 
 print("Reading...")
 data = pd.read_csv('model/data/processed/processed.csv')
@@ -22,8 +21,6 @@ y = df[TARGET]
 
 scalar = rs()
 X_scaled = scalar.fit_transform(X)
-
-print(X_scaled)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y)
 
@@ -41,10 +38,6 @@ print(y_test.value_counts(normalize=True))
 xgb_params = {
     "objective": "binary:logistic", 
     "eval_metric": "logloss",
-    "max_depth": 6,
-    "learning_rate": 0.01,
-    "n_estimators": 1000,
-    "subsample": 0.8,
     "colsample_bytree": 0.8,
     "reg_alpha": 0.1,  # L1
     "reg_lambda": 1.0,  # L2
@@ -54,11 +47,9 @@ class_weights = compute_class_weight('balanced', classes=np.unique(y_train), y=y
 scale_pos_weight = class_weights[1] / class_weights[0]
 
 model = XGBClassifier(tree_method='hist' , device='cuda', **xgb_params, scale_pos_weight=scale_pos_weight)
-# model = XGBClassifier(eval_metric='mlogloss', **xgb_params) # cpu
+# model = XGBClassifier(**xgb_params) # cpu
 
 print("Training...")
-dtrain = xgb.DMatrix(X_train, label=y_train)
-dtest = xgb.DMatrix(X_test, label=y_test)
 model.fit(
     X_train,
     y_train,
@@ -69,12 +60,6 @@ model.fit(
 
 print("Predicting...")
 y_pred = model.predict(X_test)
-
-ConfusionMatrixDisplay.from_predictions(
-        y_test, y_pred, display_labels=['BENIGN', 'Attack'],
-        cmap="Blues", normalize='true'
-    )
-plt.show()
 
 acc = accuracy_score(y_test, y_pred)
 f1 = f1_score(y_test, y_pred, average='weighted')

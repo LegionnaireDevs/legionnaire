@@ -28,6 +28,9 @@ def KillProcess(processName):
     if userOS == "Windows":
         cmd = f"Stop-Process -Name {processName} -Force"
         subprocess.run(["powershell", "-Command", cmd])
+    if userOS == "Darwin":
+        cmd = f"pkill {processName}"
+        subprocess.run(cmd, shell=True)
 
 
 @app.route("/deletefile", methods=["POST"])
@@ -61,6 +64,8 @@ def DeleteFile(location, recurse):
         subprocess.run(cmd, shell=True)
     if userOS == "Windows":
         subprocess.run(["powershell", "-Command", cmd])
+    if userOS == "Darwin":
+        subprocess.run(cmd, shell=True)
 
 
 @app.route("/createfirewallrule", methods=["POST"])
@@ -108,6 +113,15 @@ def CreateFirewallRule(direction, source, dest, action, port, protocol):
             subprocess.run(cmd, shell=True)
         else:
             return
+    elif userOS == "Darwin":
+        # MacOS PF 
+        # Create a temporary file rule
+        rule = f"{action.upper()} proto {protocol} from {source} to {dest} port {port}"
+        with open("/tmp/pf_rule.conf", "w") as f:
+            f.write(f"{rule}\n")
+        subprocess.run("sudo pfctl -f /tmp/pf_rule.conf", shell=True)
+        subprocess.run("sudo pfctl -e", shell=True)
+
     else:
         return "Unsupported OS"
 
@@ -151,6 +165,15 @@ def DeleteFirewallRule(direction, source, dest, action, port, protocol):
             subprocess.run(cmd, shell=True)
         else:
             return
+    elif userOS == "Darwin":
+        try:
+            with open("/tmp/pf_rule.conf", "w") as f:
+            # Rewrite the firewall rule to blank.
+                f.write("")
+            subprocess.run("sudo pfctl -f /tmp/pf_rule.conf", shell=True)
+        except Exception as e:
+            print("Error cleaning macOS firewall rules: ", e)
+        
     else:
         return "Unsupported OS"
 
