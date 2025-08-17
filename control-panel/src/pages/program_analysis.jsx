@@ -72,30 +72,38 @@ export default function ProgramAnalysis() {
           <div className="overflow-y-auto flex-grow bg-black/20 backdrop-blur-lg rounded-b-xl border border-t-0 border-white/10">
             <table className="w-full table-fixed">
               <tbody className="divide-y divide-white/10">
-                {results.map((log, index) => (
-                  <tr
-                    key={index}
-                    className="hover:bg-white/5 transition-colors duration-200 group"
-                  >
-                  <td className="w-2/12 px-6 py-4 align-top">
-                    <div className="text-white text-sm font-bold">
-                      {log.id}
-                    </div>
-                  </td>
-                    <td className="w-4/12 px-6 py-4 align-top font-mono text-sm text-white group-hover:text-blue-300 transition-colors break-all">
-                      {log.hash}
-                    </td>
-                    <td className="w-5/12 px-6 py-4 align-top text-white font-medium group-hover:text-blue-300 transition-colors">
-                      <div>{log.results.description}</div>
-                      <div className="capitalize mt-1 text-xs">
-                        Threat Level: {log.results.threat_level}
+                {results.length > 0 ? (
+                  results.map((log, index) => (
+                    <tr
+                      key={index}
+                      className="hover:bg-white/5 transition-colors duration-200 group"
+                    >
+                    <td className="w-1/12 px-6 py-4 align-top">
+                      <div className="text-white text-sm font-bold">
+                        {log.id}
                       </div>
                     </td>
-                    <td className="w-2/12 px-6 py-4 align-top text-white font-medium group-hover:text-blue-300 transition-colors">
-                      {new Date(log.received_at).toLocaleString()}
+                      <td className="w-4/12 px-6 py-4 align-top font-mono text-sm text-white group-hover:text-blue-300 transition-colors break-all">
+                        {log.hash}
+                      </td>
+                      <td className="w-5/12 px-6 py-4 align-top text-white font-medium group-hover:text-blue-300 transition-colors">
+                        <div className="mb-2">{log.results.description}</div>
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getThreatLevelColor(log.results.threat_level)}`}>
+                          Threat Level: {log.results.threat_level}
+                        </span>
+                      </td>
+                      <td className="w-2/12 px-6 py-4 align-top text-white font-medium group-hover:text-blue-300 transition-colors">
+                        {new Date(log.received_at).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className="px-6 py-4 text-center text-gray-400">
+                      No processes running to hash currently...
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

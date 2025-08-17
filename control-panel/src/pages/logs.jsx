@@ -68,30 +68,38 @@ export default function Logs() {
         <div className="overflow-y-auto flex-grow bg-black/20 backdrop-blur-lg rounded-b-xl border border-t-0 border-white/10">
           <table className="w-full table-fixed">
             <tbody className="divide-y divide-white/10">
-              {results.map((log, index) => (
-                <tr
-                  key={index}
-                  className="hover:bg-white/5 transition-colors duration-200 group"
-                >
-                  <td className="w-2/12 px-6 py-4 align-top">
-                    <div className="text-white text-sm font-bold">
-                      {log.id}
-                    </div>
-                  </td>
+              {results.length > 0 ? (
+                results.map((log, index) => (
+                  <tr
+                    key={index}
+                    className="hover:bg-white/5 transition-colors duration-200 group"
+                  >
+                    <td className="w-2/12 px-6 py-4 align-top">
+                      <div className="text-white text-sm font-bold">
+                        {log.id}
+                      </div>
+                    </td>
 
-                  <td className="w-7/12 px-6 py-4 align-top">
-                    <div className="text-white font-medium group-hover:text-blue-300 transition-colors">
-                      {log.msg}
-                    </div>
-                  </td>
+                    <td className="w-7/12 px-6 py-4 align-top">
+                      <div className="text-white font-medium group-hover:text-blue-300 transition-colors">
+                        {log.msg}
+                      </div>
+                    </td>
 
-                  <td className="w-3/12 px-6 py-4 align-top text-center">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border">
-                      {log.os}
-                    </span>
+                    <td className="w-3/12 px-6 py-4 align-top text-center">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getOSColor(log.os)}`}>
+                        {log.os}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="3" className="px-6 py-4 text-center text-gray-400">
+                    Loading system logs or no suspicious activity detected...
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
