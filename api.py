@@ -16,8 +16,8 @@ ALLOWED_EXTENSIONS = {"csv"}
 REGISTERED_CLIENTS = {}
 UPLOAD_DIR = Path(__file__).parent / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
-CONVERTED_DIR = UPLOAD_DIR / "converted"
-CONVERTED_DIR.mkdir(exist_ok=True)
+NET_FLOWS = Path(__file__).parent / "net_flows"
+NET_FLOWS.mkdir(exist_ok=True)
 
 _converter_started = False
 
@@ -43,7 +43,7 @@ def receive_csv():
                 continue
             target = unique_target(orig, sender_id)
             storage.save(target)
-            convert_csv(target, sender_id)
+            process_and_append_csv(target, sender_id)
             saved.append(target.name)
 
     else:
@@ -55,11 +55,86 @@ def receive_csv():
             with target.open("wb") as f:
                 f.write(body)
             saved.append(target.name)
-            convert_csv(target, sender_id)
+            process_and_append_csv(target, sender_id)
 
     if not saved:
         return jsonify({"ok": False, "error": "No CSV received"}), 400
     return jsonify({"ok": True, "saved": saved}), 201
+
+
+@app.get("/api/flows")
+def get_flows():
+    """
+    Returns paginated network flows as a JSON object.
+    Accepts 'page' and 'limit' query parameters.
+    If 'id' query parameter is provided, returns paginated flows for that specific user.
+    """
+    user_id = request.args.get("id")
+
+    try:
+        page = int(request.args.get("page", 1))
+        limit = int(request.args.get("limit", 50))
+    except ValueError:
+        return jsonify({"ok": False, "error": "Invalid page or limit parameter."}), 400
+
+    try:
+        if user_id:
+            flow_file = NET_FLOWS / f"{user_id}.csv"
+            if not flow_file.is_file():
+                return (
+                    jsonify(
+                        {"ok": False, "error": f"No flows found for ID: {user_id}"}
+                    ),
+                    404,
+                )
+
+            df = pd.read_csv(flow_file)
+
+            total_flows = len(df)
+            total_pages = (total_flows + limit - 1) // limit
+            start_index = (page - 1) * limit
+            end_index = start_index + limit
+            paginated_df = df.iloc[start_index:end_index]
+            flows = paginated_df.to_dict(orient="records")
+
+            return jsonify(
+                {
+                    "flows": flows,
+                    "total_flows": total_flows,
+                    "total_pages": total_pages,
+                    "current_page": page,
+                }
+            )
+
+        else:
+            all_flow_files = list(NET_FLOWS.glob("*.csv"))
+            if not all_flow_files:
+                return jsonify(
+                    {"flows": [], "total_flows": 0, "total_pages": 0, "current_page": 1}
+                )
+
+            all_dfs = [pd.read_csv(f) for f in all_flow_files]
+            combined_df = pd.concat(all_dfs, ignore_index=True)
+
+            total_flows = len(combined_df)
+            total_pages = (total_flows + limit - 1) // limit
+            start_index = (page - 1) * limit
+            end_index = start_index + limit
+            paginated_df = combined_df.iloc[start_index:end_index]
+            flows = paginated_df.to_dict(orient="records")
+
+            return jsonify(
+                {
+                    "flows": flows,
+                    "total_flows": total_flows,
+                    "total_pages": total_pages,
+                    "current_page": page,
+                }
+            )
+
+    except Exception as e:
+        app.logger.exception(f"Error getting flows: {e}")
+        return jsonify({"ok": False, "error": "An internal error occurred."}), 500
 
 
 @app.get("/api/uploads")
@@ -72,11 +147,6 @@ def list_uploads():
 @app.get("/api/uploads/<path:name>")
 def download_upload(name):
     return send_from_directory(UPLOAD_DIR, name, as_attachment=True)
-
-
-@app.get("/api/hello")
-def hello():
-    return jsonify({"message": "Hello from Flask API, my name is Sean"})
 
 
 @app.post("/api/add")
@@ -150,7 +220,7 @@ def create_sus_log():
 
     if not msg:
         return jsonify({"ok": False, "error": "sus_log string required"}), 400
-
+      
     SUS_LOGS.append({"id": id, "msg": msg, "os": os})
     with (UPLOAD_DIR / "sus_logs.txt").open("a", encoding="utf-8") as f:
         f.write(msg + "\n")
@@ -180,12 +250,13 @@ def register_client():
     payload = request.get_json(silent=True) or {}
     client_id = (payload.get("id") or "").strip()
     host = (payload.get("hostname") or "").strip()
+    ip = request.remote_addr
 
     if not client_id or not host:
         return jsonify({"ok": False, "error": "id and hostname required"}), 400
 
     is_new = client_id not in REGISTERED_CLIENTS
-    REGISTERED_CLIENTS[client_id] = {"id": client_id, "hostname": host}
+    REGISTERED_CLIENTS[client_id] = {"id": client_id, "hostname": host, "ip": ip}
 
     status_code = 201 if is_new else 200
     return (
@@ -204,6 +275,12 @@ def register_client():
 def list_clients():
     return jsonify(list(REGISTERED_CLIENTS.values()))
 
+@app.get("/api/clients/<client_id>")
+def get_client(client_id):
+    client = REGISTERED_CLIENTS.get(client_id)
+    if not client:
+        return jsonify({"ok": False, "error": "Client not found"}), 404
+    return jsonify(client)
 
 def allowed_file(name: str) -> bool:
     return "." in name and name.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -228,30 +305,10 @@ def unique_target(name: str, sender_id: str) -> Path:
         i += 1
 
 
-def convert_csv(csv_path: Path, sender_id: str):
-    """Convert csv_path -> converted/<name>_converted.csv (once)."""
-    try:
-        sender_out_dir = CONVERTED_DIR / (sender_id or "_unknown_sender")
-        sender_out_dir.mkdir(parents=True, exist_ok=True)
-
-        out = sender_out_dir / f"{csv_path.stem}.csv"
-
-        if out.exists():
-            return
-        convert_csv_format(str(csv_path), str(out))
-        app.logger.info(f"Converted {csv_path.name} -> {out.name}")
-    except Exception as e:
-        app.logger.exception(f"Convert error for {csv_path}: {e}")
-
-
-def convert_csv_format(input_filepath, output_filepath):
+def process_and_append_csv(input_filepath: Path, sender_id: str):
     """
-    Reads a CSV file, renames and reorders its columns based on predefined
-    mappings, and saves the result to a new CSV file.
-
-    Args:
-        input_filepath (str): The path to the source CSV file.
-        output_filepath (str): The path where the converted CSV file will be saved.
+    Reads a raw CSV, converts its format, runs prediction, filters for non-zero
+    labels, and appends the result to a single master CSV for the given sender_id.
     """
     header_mapping = {
         "dst_port": "DestinationPort",
@@ -332,8 +389,6 @@ def convert_csv_format(input_filepath, output_filepath):
         "idle_max": "IdleMax",
         "idle_min": "IdleMin",
     }
-
-    # This list defines the exact order of columns for the output file.
     new_column_order = [
         "DestinationPort",
         "FlowDuration",
@@ -390,7 +445,7 @@ def convert_csv_format(input_filepath, output_filepath):
         "AveragePacketSize",
         "AvgFwdSegmentSize",
         "AvgBwdSegmentSize",
-        "FwdHeaderLength",  # This is for 'FwdHeaderLength.1'
+        "FwdHeaderLength",
         "FwdAvgBytes/Bulk",
         "FwdAvgPackets/Bulk",
         "FwdAvgBulkRate",
@@ -416,38 +471,67 @@ def convert_csv_format(input_filepath, output_filepath):
     ]
 
     try:
-        df = pd.read_csv(input_filepath)
-        df.rename(columns=header_mapping, inplace=True)
-        df["FwdHeaderLength.1"] = df["FwdHeaderLength"]
+        sender_master_csv = NET_FLOWS / f"{sender_id or '_unknown_sender'}.csv"
 
-        final_column_order = new_column_order[:]  # Make a copy
-        final_column_order[final_column_order.index("FwdHeaderLength", 50)] = (
-            "FwdHeaderLength.1"
-        )
+        df_raw = pd.read_csv(input_filepath)
 
-        df_converted = df[final_column_order]
-        predicted = mp.predict(df_converted)
+        df_for_model = df_raw.rename(columns=header_mapping)
+        if "FwdHeaderLength" in df_for_model.columns:
+            df_for_model["FwdHeaderLength.1"] = df_for_model["FwdHeaderLength"]
 
-        df["Label"] = predicted["Label"]
-        df.to_csv(input_filepath, index=False)
-
-        print(f"Successfully converted '{input_filepath}' to '{output_filepath}'")
-    except FileNotFoundError:
-        print(f"Error: The file '{input_filepath}' was not found.")
-    except KeyError as e:
-        print(f"Error: A required column was not found in the input file: {e}")
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-
-
-def _converter_loop():
-    while True:
+        final_model_columns = new_column_order[:]
         try:
-            for p in UPLOAD_DIR.glob("*.csv"):
-                convert_csv(p)
-        except Exception as e:
-            app.logger.exception(f"Background converter loop error: {e}")
-        time.sleep(5)
+            idx = final_model_columns.index("FwdHeaderLength", 50)
+            final_model_columns[idx] = "FwdHeaderLength.1"
+        except (ValueError, IndexError):
+            app.logger.warning(
+                "Could not replace second 'FwdHeaderLength' for model input."
+            )
+
+        df_for_model = df_for_model.reindex(columns=final_model_columns, fill_value=0)
+
+        predicted = mp.predict(df_for_model)
+        df_raw["Label"] = predicted["Label"]
+
+        # df_filtered = df_raw
+        df_filtered = df_raw[df_raw["Label"] != 0]
+
+        if not df_filtered.empty:
+            columns_to_save = ["src_ip", "dst_ip", "src_port", "dst_port", "Label"]
+
+            df_final = df_filtered[columns_to_save]
+
+            write_header = (
+                not sender_master_csv.exists()
+                or os.path.getsize(sender_master_csv) == 0
+            )
+            df_final.to_csv(
+                sender_master_csv,
+                mode="a",
+                header=write_header,
+                index=False,
+            )
+            app.logger.info(
+                f"Appended {len(df_filtered)} rows for '{sender_id}' to {sender_master_csv.name}"
+            )
+        else:
+            app.logger.info(
+                f"No non-zero labels found for '{sender_id}' in {input_filepath.name}"
+            )
+
+        os.remove(input_filepath)
+        app.logger.info(f"Removed temporary file: {input_filepath.name}")
+
+    except FileNotFoundError:
+        app.logger.error(f"Error: The file '{input_filepath}' was not found.")
+    except KeyError as e:
+        app.logger.error(
+            f"Error: A required column was not found in the input file: {e}"
+        )
+    except Exception as e:
+        app.logger.exception(
+            f"An unexpected error occurred processing {input_filepath.name}: {e}"
+        )
 
 
 if __name__ == "__main__":

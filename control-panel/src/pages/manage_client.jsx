@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { fetchClientById } from '../components/ApiService';
 
 export default function Manage_Client() {
     const params = useParams();
@@ -22,20 +23,39 @@ export default function Manage_Client() {
         '2': { id: 2, name: 'WKS-02', ip: '192.168.0.2' },
     };
 
+    const handleBack = () => {
+        navigate('/dashboard'); 
+    }
+
     const clientReports = {
-        '1': [
+        '01': [
             { id: 101, type: 'Malware Detected', timestamp: '2025-08-16 10:00:00', status: 'Blocked' },
             { id: 102, type: 'Suspicious Activity', timestamp: '2025-08-16 10:15:00', status: 'Investigating' },
         ],
-        '2': [
+        '02': [
             { id: 201, type: 'Unauthorized Access Attempt', timestamp: '2025-08-16 11:30:00', status: 'Closed' },
         ],
     };
 
+    // First useEffect: fetches the client data
     useEffect(() => {
-        setClient(clientData[client_id]);
-        setReports(clientReports[client_id] || []);
-    }, [client_id]);
+        fetchClientById(client_id)
+            .then(response => {
+                console.log(response);
+                setClient(response || null);
+            })
+            .catch(error => console.error("Failed to fetch client:", error));
+    }, [client_id]); // Dependency on client_id ensures this runs when the ID changes
+
+    // Second useEffect: sets the reports based on the fetched client ID
+    useEffect(() => {
+        if (client) {
+            // Convert the client.id to a string to match the object keys
+            const clientReportsKey = String(client.id);
+            const fetchedReports = clientReports[clientReportsKey] || [];
+            setReports(fetchedReports);
+        }
+    }, [client]);
 
     if (!client) {
         return (
@@ -49,7 +69,6 @@ export default function Manage_Client() {
         );
     }
     
-    // Updated action handlers to accept a report ID
     const handleBlock = (reportId) => {
         alert(`Blocking network for report ID: ${reportId}`);
         // Implement API call to block the specific report
@@ -58,6 +77,11 @@ export default function Manage_Client() {
     const handleKillProcess = (reportId) => {
         alert(`Killing process for report ID: ${reportId}`);
         // Implement API call to change the report status to 'Investigating'
+    };
+
+    const handleDeleteSoftware = (reportId) => {
+        alert(`Deleting software for report ID: ${reportId}`);
+        // Implement API call to delete the software
     };
 
     const getStatusColor = (status) => {
@@ -120,6 +144,22 @@ export default function Manage_Client() {
                                 ← Back to EndPoints
                             </button>
                         </nav>
+            <div className="p-6 w-screen h-screen flex flex-col items-start justify-start">
+                {/* Header Section */}
+                <div className="flex justify-between items-start w-full max-w-7xl mb-8">
+                    <div>
+                        <h1 className="pt-20 pb-5 text-3xl font-bold text-white mb-2">Manage Client: {client.name}</h1>
+                        <div className="flex items-center">
+                            <p className="text-xl text-gray-300">IP Address: </p>
+                            <span className="ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                                {client.ip}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="flex items-center">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-blue-500 flex items-center justify-center text-white text-lg font-bold">
+                            {client.id}
+                        </div>
                     </div>
                 </div>
 
@@ -142,31 +182,40 @@ export default function Manage_Client() {
                             </div>
                         </div>
 
-                        {/* Reports */}
-                        <div className="mb-6">
-                            <h2 className="text-2xl font-bold text-white mb-2">Detected Reports</h2>
-                            <p className="text-lg text-white-900 mb-6">Security incidents and threat detections for this endpoint.</p>
-                        </div>
-
-                        {/* Reports Table */}
-                        <div className="w-full max-w-7xl mx-auto bg-black/20 backdrop-blur-lg rounded-xl border border-white/10 shadow-2xl overflow-hidden flex-1">
-                            <table className="w-full">
-                            <thead className="bg-gradient-to-r from-purple-600/30 to-blue-600/30 border-b border-white/10 sticky top-0">
-                                    <tr>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">Report ID</th>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">Type</th>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">Timestamp</th>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">Status</th>
-                                        <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200">
-                                    {reports.length > 0 ? (
-                                        reports.map((report) => (
-                                            <tr key={report.id} className="hover:bg-blue transition-colors">
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-red-500 to-orange-500 flex items-center justify-center text-white text-sm font-bold">
-                                                        {report.id % 100}
+                {/* Reports Table */}
+                <div className="w-full max-w-7xl bg-black/20 backdrop-blur-lg rounded-xl border border-white/10 shadow-2xl overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-gradient-to-r from-purple-600/30 to-blue-600/30 border-b border-white/10">
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                                        Report ID
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                                        Type
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                                        Timestamp
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                                        Status
+                                    </th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/10">
+                                {reports.length > 0 ? (
+                                    reports.map((report, index) => (
+                                        <tr 
+                                            key={report.id} 
+                                            className="hover:bg-white/5 transition-colors duration-200 group"
+                                        >
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <div className="flex items-center justify-center text-white text-sm font-bold">
+                                                        {report.id}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 flex items-center">
@@ -194,12 +243,20 @@ export default function Manage_Client() {
                                                     >
                                                         Kill Process
                                                     </button>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                                                    <button
+                                                        onClick={() => handleDeleteSoftware(report.id)}
+                                                        className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-xs"
+                                                    >
+                                                        Delete Software
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="5" className="px-6 py-8 text-center">
+                                            <div className="text-gray-400 text-lg">
                                                 <div className="text-4xl mb-2">📋</div>
                                                 No reports found for this client.
                                             </td>
