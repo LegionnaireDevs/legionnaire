@@ -16,6 +16,7 @@ import Network from './pages/network.jsx';
 import About from './pages/about.jsx';
 
 const App = () => {
+  // Routing
 
   return (
     <div>

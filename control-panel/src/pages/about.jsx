@@ -45,7 +45,7 @@ export default function About() {
       ></div>
 
       <div className="relative z-10 flex flex-col items-center justify-start min-h-screen w-full p-8 pt-16">
-        {/* Main title */}
+        {/* Main title .*/}
         <div className="text-center mb-12">
           <h1 className={`text-5xl md:text-7xl font-black mb-6 transition-all duration-1000 transform ${
             titleVisible 
