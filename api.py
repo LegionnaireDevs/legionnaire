@@ -8,6 +8,7 @@ from pathlib import Path
 import pandas as pd
 import os, threading, time
 from datetime import datetime
+import requests
 import model.model_predict as mp
 import requests
 
@@ -19,6 +20,7 @@ UPLOAD_DIR = Path(__file__).parent / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 NET_FLOWS = Path(__file__).parent / "net_flows"
 NET_FLOWS.mkdir(exist_ok=True)
+CLIENT_ACTION_PORT = 5001
 
 _converter_started = False
 
@@ -30,6 +32,72 @@ app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 @app.get("/api/health")
 def health():
     return jsonify({"status": "ok"})
+
+
+@app.get("/api/clients/<client_id>/reports")
+def get_client_reports(client_id):
+    reports = []
+    report_id_counter = 1
+
+    for malware in MALWARE_RESULTS:
+        if malware.get("id") == client_id:
+            reports.append(
+                {
+                    "id": f"malware_{report_id_counter}",
+                    "type": "Malware Detected",
+                    "timestamp": malware.get(
+                        "received_at", datetime.utcnow().isoformat() + "Z"
+                    ),
+                    "status": "Blocked",
+                    "details": {
+                        "hash": malware.get("hash"),
+                        "results": malware.get("results"),
+                    },
+                }
+            )
+            report_id_counter += 1
+
+    for log in SUS_LOGS:
+        if log.get("id") == client_id:
+            reports.append(
+                {
+                    "id": f"suslog_{report_id_counter}",
+                    "type": "Suspicious Activity",
+                    "timestamp": log.get(
+                        "timestamp", datetime.utcnow().isoformat() + "Z"
+                    ),
+                    "status": "Investigating",
+                    "details": {"message": log.get("msg"), "os": log.get("os")},
+                }
+            )
+            report_id_counter += 1
+
+    flow_file = NET_FLOWS / f"{client_id}.csv"
+    if flow_file.is_file():
+        try:
+            df = pd.read_csv(flow_file)
+            file_mod_time = (
+                datetime.fromtimestamp(os.path.getmtime(flow_file)).isoformat() + "Z"
+            )
+            for index, row in df.iterrows():
+                reports.append(
+                    {
+                        "id": f"netflow_{report_id_counter}",
+                        "type": "Malicious Network Flow",
+                        "timestamp": file_mod_time,
+                        "status": "Investigating",
+                        "details": row.to_dict(),
+                    }
+                )
+                report_id_counter += 1
+        except Exception as e:
+            app.logger.error(f"Could not process flow file for {client_id}: {e}")
+
+    reports.sort(key=lambda r: r.get("timestamp"), reverse=True)
+
+    limited_reports = reports[:100]
+
+    return jsonify(limited_reports)
 
 
 @app.post("/api/flow")
@@ -288,11 +356,10 @@ def create_sus_log():
     if not msg:
         return jsonify({"ok": False, "error": "sus_log string required"}), 400
 
-
     existing_ids = {log["id"] for log in SUS_LOGS}
     if id not in existing_ids:
         SUS_LOGS.append({"id": id, "msg": msg, "os": os})
-        
+
     with (UPLOAD_DIR / "sus_logs.txt").open("a", encoding="utf-8") as f:
         f.write(msg + "\n")
 
@@ -672,5 +739,71 @@ def delete_file():
 
 
 
+def forward_to_client(client_id, endpoint, payload):
+    """
+    Finds a registered client by its ID and forwards a POST request to it.
+
+    Args:
+        client_id (str): The unique identifier of the target client.
+        endpoint (str): The API endpoint on the client to call (e.g., "killprocess").
+        payload (dict): The JSON data to send in the request body.
+
+    Returns:
+        A Flask Response object, either from the client or an error message.
+    """
+    client = REGISTERED_CLIENTS.get(client_id)
+    if not client:
+        return jsonify({"ok": False, "error": "Client not found"}), 404
+
+    client_ip = client.get("ip")
+    client_url = f"http://{client_ip}:{CLIENT_ACTION_PORT}/{endpoint}"
+
+    try:
+        response = requests.post(client_url, json=payload, timeout=10)
+        try:
+            response_json = response.json()
+        except ValueError:
+            response_json = {"ok": False, "error": "Invalid response from client."}
+        return jsonify(response_json), response.status_code
+
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"Could not reach client {client_id} at {client_url}: {e}")
+        return jsonify({"ok": False, "error": f"Failed to connect to client: {e}"}), 503
+
+
+@app.post("/api/clients/<client_id>/actions/kill-process")
+def action_kill_process(client_id):
+    """API endpoint to kill a process on a specific client."""
+    payload = request.get_json(silent=True) or {}
+    if not payload.get("processName"):
+        return jsonify({"ok": False, "error": "'processName' is required"}), 400
+
+    return forward_to_client(client_id, "killprocess", payload)
+
+
+@app.post("/api/clients/<client_id>/actions/delete-file")
+def action_delete_file(client_id):
+    """API endpoint to delete a file on a specific client."""
+    payload = request.get_json(silent=True) or {}
+    if not payload.get("location"):
+        return jsonify({"ok": False, "error": "'location' is required"}), 400
+
+    return forward_to_client(client_id, "deletefile", payload)
+
+
+@app.post("/api/clients/<client_id>/actions/create-firewall-rule")
+def action_create_firewall_rule(client_id):
+    """API endpoint to create a firewall rule on a specific client."""
+    payload = request.get_json(silent=True) or {}
+    return forward_to_client(client_id, "createfirewallrule", payload)
+
+
+@app.post("/api/clients/<client_id>/actions/delete-firewall-rule")
+def action_delete_firewall_rule(client_id):
+    """API endpoint to delete a firewall rule on a specific client."""
+    payload = request.get_json(silent=True) or {}
+    return forward_to_client(client_id, "deletefirewallrule", payload)
+
+
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True, threaded=True)
+    app.run(host="0.0.0.0", port=5000, debug=True, threaded=True)
