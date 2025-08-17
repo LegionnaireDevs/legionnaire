@@ -14,6 +14,7 @@ import platform
 from log import sysLogs
 from processes import processList
 from t_cap import run as tcap_run
+from action import start_action_server
 
 if platform.system() == "Windows":
     import pystray
@@ -153,6 +154,11 @@ def main():
         )
     )
     processes.append(threading.Thread(target=tcap_worker, args=(id,)))
+    processes.append(
+        threading.Thread(
+            target=start_action_server,
+        )
+    )
 
     for p in processes:
         p.start()

@@ -2,8 +2,10 @@ import platform
 import os
 import subprocess
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route("/killprocess", methods=["POST"])
@@ -17,20 +19,23 @@ def ApiKillProcess():
 def KillProcess(processName):
     """
     Kills a process based on name.
-
-    processName: Name of process to kill.
     """
     userOS = platform.system()
-
-    if userOS == "Linux":
-        cmd = f"pkill {processName}"
-        subprocess.run(cmd, shell=True)
-    if userOS == "Windows":
-        cmd = f"Stop-Process -Name {processName} -Force"
-        subprocess.run(["powershell", "-Command", cmd])
-    if userOS == "Darwin":
-        cmd = f"pkill {processName}"
-        subprocess.run(cmd, shell=True)
+    try:
+        if userOS == "Linux":
+            cmd = f"pkill {processName}"
+            subprocess.run(cmd, shell=True, check=True)
+        elif userOS == "Windows":
+            cmd = f"Stop-Process -Name {processName} -Force"
+            subprocess.run(["powershell", "-Command", cmd], check=True)
+        elif userOS == "Darwin":
+            cmd = f"pkill {processName}"
+            subprocess.run(cmd, shell=True, check=True)
+        else:
+            return f"Unsupported OS: {userOS}"
+        return f"Successfully sent kill command for process: {processName}"
+    except Exception as e:
+        return f"Error killing process '{processName}': {e}"
 
 
 @app.route("/deletefile", methods=["POST"])
@@ -45,27 +50,28 @@ def ApiDeleteFile():
 def DeleteFile(location, recurse):
     """
     Deletes a file at location.
-
-    location:   Full path to file.
-    recurse:    True or 1 to recursively delete.
     """
     userOS = platform.system()
-
     if not os.path.exists(location):
-        InvalidMessage("path file", location)
-        return
+        return InvalidMessage("path file", location)
 
     if recurse:
         cmd = f"rm -r {location}"
     else:
         cmd = f"rm {location}"
 
-    if userOS == "Linux":
-        subprocess.run(cmd, shell=True)
-    if userOS == "Windows":
-        subprocess.run(["powershell", "-Command", cmd])
-    if userOS == "Darwin":
-        subprocess.run(cmd, shell=True)
+    try:
+        if userOS in ["Linux", "Darwin"]:
+            subprocess.run(cmd, shell=True, check=True)
+        elif userOS == "Windows":
+            if recurse:
+                ps_cmd = f"Remove-Item -Path '{location}' -Recurse -Force"
+            else:
+                ps_cmd = f"Remove-Item -Path '{location}' -Force"
+            subprocess.run(["powershell", "-Command", ps_cmd], check=True)
+        return f"Successfully deleted: {location}"
+    except Exception as e:
+        return f"Error deleting '{location}': {e}"
 
 
 @app.route("/createfirewallrule", methods=["POST"])
@@ -84,46 +90,30 @@ def ApiCreateFirewallRule():
 def CreateFirewallRule(direction, source, dest, action, port, protocol):
     """
     Allows the creation of firewall rules.
-
-    direction:  "in" or "out" for Windows.
-                "INPUT" or "OUTPUT" for Linux.
-    source:     Host IP.
-    dest:       Destination IP.
-    action:     "allow" or "block" for Windows.
-                "ACCEPT" or "DROP" for Linux.
-    port:       Port to apply to.
-    protocol:   "tcp" or "udp".
     """
-
     userOS = platform.system()
-
-    if userOS == "Linux":
-        if VerifyIptables(direction, action, protocol):
+    try:
+        if userOS == "Linux":
+            if not VerifyIptables(direction, action, protocol):
+                return "Invalid iptables parameters."
             cmd = f"iptables -t filter -A {direction} -s {source} -d {dest} -p {protocol} --dport {port} -j {action}"
-            subprocess.run(cmd, shell=True)
-            subprocess.run("iptables-save > ./iptablesRule.v4", shell=True)
+            subprocess.run(cmd, shell=True, check=True)
+        elif userOS == "Windows":
+            if not VerifyNetsh(direction, action, protocol):
+                return "Invalid netsh parameters."
+            cmd = f'netsh advfirewall firewall add rule name="Block-{dest}-{port}" dir={direction} action={action} protocol={protocol} remoteip={dest} localport={port}'
+            subprocess.run(cmd, shell=True, check=True)
+        elif userOS == "Darwin":
+            rule = f"{action} proto {protocol} from {source} to {dest} port {port}"
+            with open("/tmp/pf_rule.conf", "w") as f:
+                f.write(f"{rule}\n")
+            subprocess.run("sudo pfctl -f /tmp/pf_rule.conf", shell=True, check=True)
+            subprocess.run("sudo pfctl -e", shell=True, check=True)
         else:
-            return
-    elif userOS == "Windows":
-        if VerifyNetsh(direction, action, protocol):
-            cmd = (
-                f"netsh advfirewall firewall add rule name={dest}"
-                f"dir={direction} action={action} protocol={protocol} localip={source} remoteip={dest}"
-            )
-            subprocess.run(cmd, shell=True)
-        else:
-            return
-    elif userOS == "Darwin":
-        # MacOS PF 
-        # Create a temporary file rule
-        rule = f"{action.upper()} proto {protocol} from {source} to {dest} port {port}"
-        with open("/tmp/pf_rule.conf", "w") as f:
-            f.write(f"{rule}\n")
-        subprocess.run("sudo pfctl -f /tmp/pf_rule.conf", shell=True)
-        subprocess.run("sudo pfctl -e", shell=True)
-
-    else:
-        return "Unsupported OS"
+            return f"Unsupported OS: {userOS}"
+        return f"Firewall rule for {dest} successfully created."
+    except Exception as e:
+        return f"Error creating firewall rule: {e}"
 
 
 @app.route("/deletefirewallrule", methods=["POST"])
@@ -142,40 +132,28 @@ def ApiDeleteFirewallRule():
 def DeleteFirewallRule(direction, source, dest, action, port, protocol):
     """
     Deletes an existing firewall rule.
-    direction:  "in" or "out" for Windows.
-                "INPUT" or "OUTPUT" for Linux.
-    source:     Host IP.
-    dest:       Destination IP.
-    action:     "allow" or "block" for Windows.
-                "ACCEPT" or "DROP" for Linux.
-    port:       Port to apply to.
-    protocol:   "tcp" or "udp".
     """
     userOS = platform.system()
-
-    if userOS == "Linux":
-        if VerifyIptables(direction, action, protocol):
+    try:
+        if userOS == "Linux":
+            if not VerifyIptables(direction, action, protocol):
+                return "Invalid iptables parameters."
             cmd = f"iptables -t filter -D {direction} -s {source} -d {dest} -p {protocol} --dport {port} -j {action}"
-            subprocess.run(cmd, shell=True)
-        else:
-            return
-    elif userOS == "Windows":
-        if VerifyNetsh(direction, action, protocol):
-            cmd = f"netsh advfirewall firewall delete rule name={dest}"
-            subprocess.run(cmd, shell=True)
-        else:
-            return
-    elif userOS == "Darwin":
-        try:
+            subprocess.run(cmd, shell=True, check=True)
+        elif userOS == "Windows":
+            if not VerifyNetsh(direction, action, protocol):
+                return "Invalid netsh parameters."
+            cmd = f'netsh advfirewall firewall delete rule name="Block-{dest}-{port}"'
+            subprocess.run(cmd, shell=True, check=True)
+        elif userOS == "Darwin":
             with open("/tmp/pf_rule.conf", "w") as f:
-            # Rewrite the firewall rule to blank.
                 f.write("")
-            subprocess.run("sudo pfctl -f /tmp/pf_rule.conf", shell=True)
-        except Exception as e:
-            print("Error cleaning macOS firewall rules: ", e)
-        
-    else:
-        return "Unsupported OS"
+            subprocess.run("sudo pfctl -f /tmp/pf_rule.conf", shell=True, check=True)
+        else:
+            return f"Unsupported OS: {userOS}"
+        return f"Firewall rule for {dest} successfully deleted."
+    except Exception as e:
+        return f"Error deleting firewall rule: {e}"
 
 
 def VerifyIptables(direction, action, protocol):
@@ -223,3 +201,11 @@ def InvalidMessage(errType, received):
     """
     print(f"Invalid {errType}. Received {received}")
     return False
+
+
+def start_action_server():
+    app.run(host="0.0.0.0", port=5001)
+
+
+if __name__ == "__main__":
+    start_action_server()
