@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { fetchClientById } from '../components/ApiService';
 
 export default function Manage_Client() {
     const params = useParams();
@@ -13,27 +14,37 @@ export default function Manage_Client() {
     const handleBack = () => {
         navigate('/dashboard'); 
     }
-
-    // Placeholder data to be replaced with actual API calls.
-    const clientData = {
-        '1': { id: 1, name: 'ENV-Lap01', ip: '192.168.0.1' },
-        '2': { id: 2, name: 'WKS-02', ip: '192.168.0.2' },
-    };
-
+    
+    // This is a placeholder for your data. In a real application, you would fetch this from an API.
     const clientReports = {
-        '1': [
+        '01': [
             { id: 101, type: 'Malware Detected', timestamp: '2025-08-16 10:00:00', status: 'Blocked' },
             { id: 102, type: 'Suspicious Activity', timestamp: '2025-08-16 10:15:00', status: 'Investigating' },
         ],
-        '2': [
+        '02': [
             { id: 201, type: 'Unauthorized Access Attempt', timestamp: '2025-08-16 11:30:00', status: 'Closed' },
         ],
     };
 
+    // First useEffect: fetches the client data
     useEffect(() => {
-        setClient(clientData[client_id]);
-        setReports(clientReports[client_id] || []);
-    }, [client_id]);
+        fetchClientById(client_id)
+            .then(response => {
+                console.log(response);
+                setClient(response || null);
+            })
+            .catch(error => console.error("Failed to fetch client:", error));
+    }, [client_id]); // Dependency on client_id ensures this runs when the ID changes
+
+    // Second useEffect: sets the reports based on the fetched client ID
+    useEffect(() => {
+        if (client) {
+            // Convert the client.id to a string to match the object keys
+            const clientReportsKey = String(client.id);
+            const fetchedReports = clientReports[clientReportsKey] || [];
+            setReports(fetchedReports);
+        }
+    }, [client]);
 
     if (!client) {
         return (
@@ -47,7 +58,6 @@ export default function Manage_Client() {
         );
     }
     
-    // Updated action handlers to accept a report ID
     const handleBlock = (reportId) => {
         alert(`Blocking network for report ID: ${reportId}`);
         // Implement API call to block the specific report
@@ -56,6 +66,11 @@ export default function Manage_Client() {
     const handleKillProcess = (reportId) => {
         alert(`Killing process for report ID: ${reportId}`);
         // Implement API call to change the report status to 'Investigating'
+    };
+
+    const handleDeleteSoftware = (reportId) => {
+        alert(`Deleting software for report ID: ${reportId}`);
+        // Implement API call to delete the software
     };
 
     const getStatusColor = (status) => {
@@ -101,7 +116,6 @@ export default function Manage_Client() {
                 {/* Header Section */}
                 <div className="flex justify-between items-start w-full max-w-7xl mb-8">
                     <div>
-                        
                         <h1 className="pt-20 pb-5 text-3xl font-bold text-white mb-2">Manage Client: {client.name}</h1>
                         <div className="flex items-center">
                             <p className="text-xl text-gray-300">IP Address: </p>
@@ -155,8 +169,8 @@ export default function Manage_Client() {
                                         >
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">
-                                                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-red-500 to-orange-500 flex items-center justify-center text-white text-sm font-bold">
-                                                        {report.id % 100}
+                                                    <div className="flex items-center justify-center text-white text-sm font-bold">
+                                                        {report.id}
                                                     </div>
                                                 </div>
                                             </td>
@@ -191,6 +205,12 @@ export default function Manage_Client() {
                                                         className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-xs"
                                                     >
                                                         Kill Process
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteSoftware(report.id)}
+                                                        className="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-2 px-3 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 text-xs"
+                                                    >
+                                                        Delete Software
                                                     </button>
                                                 </div>
                                             </td>

@@ -19,6 +19,7 @@
     "@mui/x-charts": "^8.10.1",
     "@remixicon/react": "^4.6.0",
     "@tailwindcss/vite": "^4.1.12",
+    "axios": "^1.11.0",
     "clsx": "^2.1.1",
     "firebase": "^12.1.0",
     "lucide-react": "^0.539.0",
