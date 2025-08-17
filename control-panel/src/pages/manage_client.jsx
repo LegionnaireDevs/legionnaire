@@ -28,7 +28,8 @@ export default function Manage_Client() {
     useEffect(() => {
         fetchClientById(client_id)
             .then(response => {
-                setClient(response || null);
+                setClient(response.client || null);
+                setReports(response.reports || []);
             })
             .catch(error => console.error("Failed to fetch client:", error));
     }, [client_id]);
