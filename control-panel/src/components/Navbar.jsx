@@ -16,14 +16,15 @@ export default function Navbar() {
 
   const links = [
     { name: "Home", path: "/" },
-    { name: "Dashboard", path: "/dashboard" }
+    { name: "Dashboard", path: "/dashboard" },
+    { name: "About", path: "/about"}
   ];
 
   return (
     <nav className="bg-black-900 text-white fixed w-full z-50 shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center h-16 justify-between">
-          {/* Left: Logo + links */}
+          {/* Left: Logo + links. */}
           <div className="flex items-center space-x-8">
             {/* Logo */}
             <NavLink to="/" className="text-2xl font-bold tracking-tight !text-white">
