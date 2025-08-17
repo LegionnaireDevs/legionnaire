@@ -250,12 +250,13 @@ def register_client():
     payload = request.get_json(silent=True) or {}
     client_id = (payload.get("id") or "").strip()
     host = (payload.get("hostname") or "").strip()
+    ip = request.remote_addr
 
     if not client_id or not host:
         return jsonify({"ok": False, "error": "id and hostname required"}), 400
 
     is_new = client_id not in REGISTERED_CLIENTS
-    REGISTERED_CLIENTS[client_id] = {"id": client_id, "hostname": host}
+    REGISTERED_CLIENTS[client_id] = {"id": client_id, "hostname": host, "ip": ip}
 
     try:
         _save_registered_snapshot()
@@ -279,6 +280,12 @@ def register_client():
 def list_clients():
     return jsonify(list(REGISTERED_CLIENTS.values()))
 
+@app.get("/api/clients/<client_id>")
+def get_client(client_id):
+    client = REGISTERED_CLIENTS.get(client_id)
+    if not client:
+        return jsonify({"ok": False, "error": "Client not found"}), 404
+    return jsonify(client)
 
 def allowed_file(name: str) -> bool:
     return "." in name and name.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
