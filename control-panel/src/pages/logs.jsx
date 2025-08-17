@@ -21,7 +21,7 @@ export default function Logs() {
   }, []);
 
   return (
-    <div className="h-screen w-full flex flex-col overflow-hidden relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
+    <div className="h-full w-full flex flex-col overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
       <div className="absolute top-16 left-1/3 w-1.5 h-1.5 bg-white rounded-full animate-pulse delay-300"></div>
       <div className="absolute bottom-32 right-1/3 w-2.5 h-2.5 bg-white rounded-full animate-bounce delay-1200"></div>
       <div className="absolute top-1/3 left-16 w-1 h-1 bg-white rounded-full animate-ping delay-800"></div>
