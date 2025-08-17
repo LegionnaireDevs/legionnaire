@@ -221,7 +221,11 @@ def create_sus_log():
     if not msg:
         return jsonify({"ok": False, "error": "sus_log string required"}), 400
 
-    SUS_LOGS.append({"id": id, "msg": msg, "os": os})
+
+    existing_ids = {log["id"] for log in SUS_LOGS}
+    if id not in existing_ids:
+        SUS_LOGS.append({"id": id, "msg": msg, "os": os})
+        
     with (UPLOAD_DIR / "sus_logs.txt").open("a", encoding="utf-8") as f:
         f.write(msg + "\n")
 

@@ -82,9 +82,10 @@ def register_with_control():
     )
 
 
-def logs_worker(interval=60, id=""):
+def logs_worker(interval=10, id=""):
     while True:
         try:
+            print("tetsteetetsetsestetsetstest")
             sysLogs(id)
         except Exception as e:
             print("logs_worker error:", e)
@@ -137,7 +138,7 @@ def main():
         threading.Thread(
             target=logs_worker,
             args=(
-                60,
+                10,
                 id,
             ),
         )
