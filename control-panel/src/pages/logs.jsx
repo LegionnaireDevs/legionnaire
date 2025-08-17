@@ -87,7 +87,7 @@ export default function Logs() {
                     </td>
 
                     <td className="w-3/12 px-6 py-4 align-top text-center">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getOSColor(log.os)}`}>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border`}>
                         {log.os}
                       </span>
                     </td>
