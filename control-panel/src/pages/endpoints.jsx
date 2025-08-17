@@ -1,18 +1,17 @@
 import { React, useEffect, useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import { fetchClients } from "../components/ApiService";
 
 export default function Endpoints() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const handleManageClient = (clientID) => {
-        navigate(`/manage_client/${clientID}`);
-    }
+  const handleManageClient = (clientID) => {
+    navigate(`/manage_client/${clientID}`);
+  };
 
-    const handleNewClient = () => {
-        navigate('/new_client');
-    }
-
+  const handleNewClient = () => {
+    navigate("/new_client");
+  };
     const [clients, setClients] = useState([]);
     
 
@@ -48,12 +47,12 @@ return (
                 <h1 className="text-3xl font-bold text-white mb-2">Endpoints List</h1>
                 <p className="text-xl text-gray-300">Manage and monitor your system endpoints.</p>
             </div>
-            <button
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                onClick={handleNewClient}
-            >
-                Add Endpoint
-            </button>
+          <button
+            className="!border-0 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            onClick={handleNewClient}
+          >
+            Add Endpoint
+          </button>
         </div>
 
         <div className="w-full max-w-7xl mx-auto px-6 pb-6 flex-1 flex flex-col min-h-0">
