@@ -13,6 +13,7 @@ import Login from './pages/login.jsx';
 import Logs from './pages/logs.jsx';
 import ProgramAnalysis from './pages/program_analysis.jsx';
 import Network from './pages/network.jsx';
+import About from './pages/about.jsx';
 
 const App = () => {
 
@@ -22,6 +23,7 @@ const App = () => {
         <Routes>
           <Route path ="/" element = {<Home />} />
           <Route path ="/dashboard" element = {<Dashboard />} />
+          <Route path ="/about" element = {<About />} />
           <Route path ="/login" element = {<Login />} />
           <Route path ="/api_status" element = {<API_Status />} />
           <Route path="endpoints" element={<Endpoints />} />
