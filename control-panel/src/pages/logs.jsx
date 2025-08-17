@@ -9,7 +9,7 @@ export default function Logs() {
         const res = await fetch("http://localhost:5000/api/logs");
         const data = await res.json();
         console.log(data);
-        setResults(data || []); // <-- use the array inside
+        setResults(data || []);
       } catch (err) {
         console.error("Error fetching logs:", err);
       }
@@ -21,8 +21,7 @@ export default function Logs() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Floating particles */}
+    <div className="h-screen w-full flex flex-col overflow-hidden relative bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
       <div className="absolute top-16 left-1/3 w-1.5 h-1.5 bg-white rounded-full animate-pulse delay-300"></div>
       <div className="absolute bottom-32 right-1/3 w-2.5 h-2.5 bg-white rounded-full animate-bounce delay-1200"></div>
       <div className="absolute top-1/3 left-16 w-1 h-1 bg-white rounded-full animate-ping delay-800"></div>
@@ -39,65 +38,62 @@ export default function Logs() {
       <div className="absolute top-1/6 right-1/4 w-1.5 h-1.5 bg-white rounded-full animate-bounce delay-800"></div>
       <div className="absolute bottom-1/6 left-3/5 w-1 h-1 bg-white rounded-full animate-ping delay-600"></div>
 
-      <div className="p-6 pb-8 min-h-screen flex flex-col">
-        {/* Header Container */}
-        <div className="w-full max-w-7xl mx-auto mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">System Logs</h1>
-          <p className="text-xl text-gray-300">
-            Analysis of system logs, suspicious logs will be shown here.
-          </p>
+      <div className="w-full max-w-7xl mx-auto p-6 flex-shrink-0">
+        <h1 className="text-3xl font-bold text-white mb-2">System Logs</h1>
+        <p className="text-xl text-gray-300">
+          Analysis of system logs, suspicious logs will be shown here.
+        </p>
+      </div>
+
+      <div className="w-full max-w-7xl mx-auto px-6 pb-6 flex-1 flex flex-col min-h-0">
+        
+        <div className="flex-shrink-0 bg-black/20 backdrop-blur-lg rounded-t-xl border border-b-0 border-white/10">
+          <table className="w-full table-fixed">
+            <thead className="bg-gradient-to-r from-purple-600/30 to-blue-600/30">
+              <tr>
+                <th className="w-2/12 px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                  ID
+                </th>
+                <th className="w-7/12 px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                  Suspicious Activity
+                </th>
+                <th className="w-3/12 text-center px-6 py-4 text-sm font-semibold text-white uppercase tracking-wider">
+                  Operating System
+                </th>
+              </tr>
+            </thead>
+          </table>
         </div>
 
-        {/* Logs Table */}
-        <div className="w-full max-w-7xl mx-auto bg-black/20 backdrop-blur-lg rounded-xl border border-white/10 shadow-2xl overflow-hidden flex-1">
-          <div className="overflow-auto h-full">
-            <table className="w-full">
-              <thead className="bg-gradient-to-r from-purple-600/30 to-blue-600/30 border-b border-white/10 sticky top-0">
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
-                    ID
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
-                    Suspicious Activity
-                  </th>
-                  <th className="text-center px-6 py-4 text-sm font-semibold text-white uppercase tracking-wider">
-                    Operating System
-                  </th>
+        <div className="overflow-y-auto flex-grow bg-black/20 backdrop-blur-lg rounded-b-xl border border-t-0 border-white/10">
+          <table className="w-full table-fixed">
+            <tbody className="divide-y divide-white/10">
+              {results.map((log, index) => (
+                <tr
+                  key={index}
+                  className="hover:bg-white/5 transition-colors duration-200 group"
+                >
+                  <td className="w-2/12 px-6 py-4 align-top">
+                    <div className="text-white text-sm font-bold">
+                      {log.id}
+                    </div>
+                  </td>
+
+                  <td className="w-7/12 px-6 py-4 align-top">
+                    <div className="text-white font-medium group-hover:text-blue-300 transition-colors">
+                      {log.msg}
+                    </div>
+                  </td>
+
+                  <td className="w-3/12 px-6 py-4 align-top text-center">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border">
+                      {log.os}
+                    </span>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-white/10">
-                {results.map((log, index) => (
-                  <tr
-                    key={index}
-                    className="hover:bg-white/5 transition-colors duration-200 group"
-                  >
-                    {/* ID */}
-                    <td className="px-6 py-4 wrap-anywhere">
-                      <div className="flex items-center">
-                        <div className="flex items-center justify-center text-white text-sm font-bold">
-                          {log.id}
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Suspicious Activity */}
-                    <td className="px-6 py-4">
-                      <div className="text-white font-medium group-hover:text-blue-300 transition-colors">
-                        {log.msg}
-                      </div>
-                    </td>
-
-                    {/* OS */}
-                    <td className="flex justify-center px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border">
-                        {log.os}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
