@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // <-- import useNavigate
+import { useNavigate, useLocation } from "react-router-dom"; // <-- import useNavigate
 import Endpoints from "../pages/endpoints.jsx"; 
 import Statistics from "../pages/statistics.jsx";  
 import { auth } from "../firebase"; 
@@ -32,6 +32,14 @@ export default function Dashboard() {
         }
     }, []);
 
+    useEffect(() => {
+        if (location.state?.activeTab) {
+          setActiveTab(location.state.activeTab);
+          // Clear the state to avoid issues with browser back/forward
+          window.history.replaceState({}, document.title);
+        }
+      }, [location.state]);
+
 
     const menuItems = [
         { id: 'statistics', label: 'Statistics'},
@@ -44,21 +52,20 @@ export default function Dashboard() {
 
     const renderContent = () => {
         switch (activeTab) {
-            case 'statistics':
-                return <Statistics />;
-            case 'endpoints':
-                return <Endpoints />;
-            case 'logs':
-                return <Logs/>;
-            case 'program_analysis': 
-                return <ProgramAnalysis/>;
-            case 'network':
-                return <Network/>;
-            default:
-                return <Statistics />;
+          case "statistics":
+            return <Statistics setActiveTab={setActiveTab} />;
+          case "endpoints":
+            return <Endpoints setActiveTab={setActiveTab} />;
+          case "logs":
+            return <Logs setActiveTab={setActiveTab} />;
+          case "program_analysis":
+            return <ProgramAnalysis setActiveTab={setActiveTab} />;
+          case "network":
+            return <Network setActiveTab={setActiveTab} />;
+          default:
+            return <Statistics setActiveTab={setActiveTab} />;
         }
-        
-    };
+      };
 
     return (
         <div className="min-h-screen w-screen relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -86,7 +93,7 @@ export default function Dashboard() {
             </div>
             
             
-            {/* Main layout.*/}
+            {/* Main layout */}
             <div className="relative z-10 flex" style={{height: 'calc(100vh - 80px)', marginTop: '65px'}}>
                 {/* Left Vertical Toolbar */}
                 <div className="w-64 bg-black/20 backdrop-blur-sm border-r border-white/10">

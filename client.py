@@ -78,7 +78,7 @@ def register_with_control():
     global id, hostname
     print(f"Registering with control server: {hostname} {id}")
     response = requests.post(
-        "http://localhost:5000/register", json={"hostname": hostname, "id": str(id)}
+        "http://localhost:5000/api/register", json={"hostname": hostname, "id": str(id)}
     )
 
 

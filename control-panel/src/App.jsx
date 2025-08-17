@@ -24,8 +24,8 @@ const App = () => {
           <Route path ="/dashboard" element = {<Dashboard />} />
           <Route path ="/login" element = {<Login />} />
           <Route path ="/api_status" element = {<API_Status />} />
+          <Route path="endpoints" element={<Endpoints />} />
           <Route path ="/statistics" element = {<Statistics />} />
-          <Route path ="/endpoints" element = {<Endpoints />} />
           <Route path ="/manage_client/:clientID" element = {<Manage_Client />} />
           <Route path ="/new_client" element = {<NewClient />} />
           <Route path ="/logs" element = {<Logs />} />
