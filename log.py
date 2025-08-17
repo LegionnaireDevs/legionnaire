@@ -330,6 +330,7 @@ suspicious_keywords = [
     "configuration file changed",
     "First time user logged in.",
     "Kernel log daemon terminating",
+    "dumped core",
 ]
 
 suspicious_keywords = list(set(suspicious_keywords))
@@ -345,7 +346,7 @@ def filterSuspicious(logs):
     suspicious = []
     for entry in logs:
         low = entry.lower()
-        if any(k in low for k in suspicious_keywords):
+        if pattern.search(low):
             suspicious.append(entry)
     return suspicious
 
