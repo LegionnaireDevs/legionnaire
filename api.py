@@ -9,6 +9,7 @@ import pandas as pd
 import os, threading, time
 from datetime import datetime
 import model.model_predict as mp
+import requests
 
 MALWARE_RESULTS = []
 SUS_LOGS = []
@@ -625,6 +626,23 @@ def collate(client_id):
     all_logs.extend(sus_logs)
     return all_logs
 
+@app.route("/killprocess", methods=["POST"])
+def kill_process():   
+    data = request.get_json() 
+
+    client_id = data.get("client_id")
+
+    target_ip = REGISTERED_CLIENTS.get(client_id).get("ip")
+
+    
+    process_name = data.get("process_name")
+
+    send_data = {
+    "processName": process_name
+    }
+
+    response = response = requests.post(f"http://{target_ip}:5555/killprocess",json=send_data)
+    return jsonify({"response": response})
 
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True, threaded=True)
