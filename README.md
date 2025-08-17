@@ -14,6 +14,9 @@ Legionnaire is an AI-powered SIEM (Security Information and Event Management) pl
 
 ## Features
 
+#### XGBoost Binary Classification
+The model being used is the XGBClassification algorithm, which is an extremely optimised gradient boosting ensemble algorithm. This model was trained and tested on real collected data and verified using the CIC-IDS-2017 dataset. Throughout the hackathon, the model was trained a variety of times, attempting multiclass classification and binary classification of attacks. The final model used is a logistic binary classifier trained with L1 and L2 regularisation, also implementing methods to deal with class imbalances such as weight scaling. This classifier predicts the labels of data containing 79 columns of network traffic to either Benign (0) or Attack (1).
+
 #### Network Module
 Captures network traffic and performs feature analysis using machine learning to identify suspicious network activity.
 
