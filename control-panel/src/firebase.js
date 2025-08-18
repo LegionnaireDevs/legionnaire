@@ -4,7 +4,7 @@ import { getAuth } from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCGh4GA9iYqtZHBKy5Mv-OmMN5NwDwi2Nw",
+  apiKey: "AIzaSyCGh4GA9iYqtZHBKy5Mv-FUSN5NwDwi2Nw",
   authDomain: "legionnaire-3ff3f.firebaseapp.com",
   projectId: "legionnaire-3ff3f",
   storageBucket: "legionnaire-3ff3f.firebasestorage.app",
