@@ -88,7 +88,7 @@ export default function ProgramAnalysis() {
                       </td>
                       <td className="w-5/12 px-6 py-4 align-top text-white font-medium group-hover:text-blue-300 transition-colors">
                         <div className="mb-2">{log.results.description}</div>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getThreatLevelColor(log.results.threat_level)}`}>
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border`}>
                           Threat Level: {log.results.threat_level}
                         </span>
                       </td>
