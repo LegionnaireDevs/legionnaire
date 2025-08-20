@@ -10,14 +10,14 @@ const postActionToClient = async (clientId, action, body) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-    },
+    }
   );
   if (!response.ok) {
     const errorData = await response
       .json()
       .catch(() => ({ error: "An unknown error occurred." }));
     throw new Error(
-      errorData.error || `Request failed with status ${response.status}`,
+      errorData.error || `Request failed with status ${response.status}`
     );
   }
   return response.json();
@@ -34,7 +34,7 @@ const fetchClientById = async (clientId) => {
 
 const fetchReportsByClientId = async (clientId) => {
   const response = await fetch(
-    `${API_BASE_URL}/api/clients/${clientId}/reports`,
+    `${API_BASE_URL}/api/clients/${clientId}/reports`
   );
   if (!response.ok) {
     throw new Error("Network response was not ok for fetching reports.");
@@ -200,7 +200,7 @@ export default function ManageClient() {
             result = await deleteFile(
               clientId,
               params.location,
-              !!params.recurse,
+              !!params.recurse
             );
             break;
           case "block":
@@ -216,7 +216,7 @@ export default function ManageClient() {
         setActiveAction(null);
       }
     },
-    [clientId],
+    [clientId]
   );
 
   const handleBackToEndpoints = () =>

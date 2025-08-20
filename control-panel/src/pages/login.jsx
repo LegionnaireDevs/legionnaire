@@ -48,7 +48,7 @@ export default function Login() {
         const userCredential = await signInWithEmailAndPassword(
           auth,
           formData.email,
-          formData.password,
+          formData.password
         );
         console.log("Logged in:", userCredential.user);
         navigate("/dashboard");
@@ -62,7 +62,7 @@ export default function Login() {
         const userCredential = await createUserWithEmailAndPassword(
           auth,
           formData.email,
-          formData.password,
+          formData.password
         );
 
         // Optionally update displayName

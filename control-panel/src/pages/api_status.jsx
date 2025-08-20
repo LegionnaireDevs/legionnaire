@@ -34,7 +34,7 @@ export default function API_Status() {
   };
 
   return (
-    <div class="w-screen h-screen justify-center items-center flex flex-col">
+    <div className="w-screen h-screen justify-center items-center flex flex-col">
       <div style={{ padding: 20, fontFamily: "system-ui, Arial" }}>
         <h1>Legionnaire API Status</h1>
         <p>

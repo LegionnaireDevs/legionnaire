@@ -1,15 +1,14 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { StyledEngineProvider } from '@mui/material/styles';
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { StyledEngineProvider } from "@mui/material/styles";
 
+import React from "react";
+import "./index.css";
 
-import React from 'react';
-import './index.css'
-
-import  App  from './App'
-import API_Status from './pages/api_status.jsx';
-import Navbar from './components/Navbar.jsx';
+import App from "./App";
+import API_Status from "./pages/api_status.jsx";
+import Navbar from "./components/Navbar.jsx";
 
 import ReactDOM from "react-dom/client";
 
@@ -22,6 +21,5 @@ ReactDOM.createRoot(root).render(
         <App />
       </StyledEngineProvider>
     </BrowserRouter>
-
-  </StrictMode>,
-)
+  </StrictMode>
+);

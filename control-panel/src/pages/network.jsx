@@ -14,7 +14,7 @@ export default function Network() {
       setLoading(true);
       try {
         const response = await fetch(
-          `${API_URL}?page=${page}&limit=${DATA_LIMIT}`,
+          `${API_URL}?page=${page}&limit=${DATA_LIMIT}`
         );
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
