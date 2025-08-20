@@ -4,13 +4,11 @@ from flask_cors import CORS
 from pathlib import Path
 from werkzeug.utils import secure_filename
 import json
-from pathlib import Path
 import pandas as pd
-import os, threading, time
 from datetime import datetime
 import requests
 import model.model_predict as mp
-import requests
+import os
 
 MALWARE_RESULTS = []
 SUS_LOGS = []
@@ -21,8 +19,6 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 NET_FLOWS = Path(__file__).parent / "net_flows"
 NET_FLOWS.mkdir(exist_ok=True)
 CLIENT_ACTION_PORT = 5001
-
-_converter_started = False
 
 app = Flask(__name__)
 CORS(app)
@@ -62,7 +58,7 @@ def get_client_reports(client_id):
             reports.append(
                 {
                     "id": f"suslog_{report_id_counter}",
-                    "type": "Suspicious Activity",
+                    "type": "Suspicious Logs",
                     "timestamp": log.get(
                         "timestamp", datetime.utcnow().isoformat() + "Z"
                     ),
@@ -205,6 +201,7 @@ def get_flows():
         app.logger.exception(f"Error getting flows: {e}")
         return jsonify({"ok": False, "error": "An internal error occurred."}), 500
 
+
 def _get_flows_by_id(user_id):
     """
     Exactly the same as get_flows, but only for a specific user ID.
@@ -221,9 +218,7 @@ def _get_flows_by_id(user_id):
             flow_file = NET_FLOWS / f"{user_id}.csv"
             if not flow_file.is_file():
                 print("no flow")
-                return (
-                    {}                   
-                )
+                return {}
 
             df = pd.read_csv(flow_file)
 
@@ -235,12 +230,11 @@ def _get_flows_by_id(user_id):
             flows = paginated_df.to_dict(orient="records")
 
             return {
-                    "flows": flows,
-                    "total_flows": total_flows,
-                    "total_pages": total_pages,
-                    "current_page": page,
-                }
-            
+                "flows": flows,
+                "total_flows": total_flows,
+                "total_pages": total_pages,
+                "current_page": page,
+            }
 
         else:
             all_flow_files = list(NET_FLOWS.glob("*.csv"))
@@ -259,18 +253,17 @@ def _get_flows_by_id(user_id):
             paginated_df = combined_df.iloc[start_index:end_index]
             flows = paginated_df.to_dict(orient="records")
 
-            
             return {
-            "flows": flows,
-            "total_flows": total_flows,
-            "total_pages": total_pages,
-            "current_page": page,
+                "flows": flows,
+                "total_flows": total_flows,
+                "total_pages": total_pages,
+                "current_page": page,
             }
-            
 
     except Exception as e:
         app.logger.exception(f"Error getting flows: {e}")
         return jsonify({"ok": False, "error": "An internal error occurred."}), 500
+
 
 @app.get("/api/uploads")
 def list_uploads():
@@ -420,7 +413,7 @@ def get_client(client_id):
     reports = collate(client_id)
     if not client:
         return jsonify({"ok": False, "error": "Client not found"}), 404
-    return jsonify({"client": client, "reports": reports}),200
+    return jsonify({"client": client, "reports": reports}), 200
 
 
 def allowed_file(name: str) -> bool:
@@ -674,6 +667,7 @@ def process_and_append_csv(input_filepath: Path, sender_id: str):
             f"An unexpected error occurred processing {input_filepath.name}: {e}"
         )
 
+
 def collate(client_id):
     """
     Collates all available logs for a client:
@@ -682,9 +676,7 @@ def collate(client_id):
     """
 
     flows = _get_flows_by_id(client_id)
-    malware_results = [
-        r for r in MALWARE_RESULTS if r.get("id") == client_id
-    ]
+    malware_results = [r for r in MALWARE_RESULTS if r.get("id") == client_id]
     sus_logs = [l for l in SUS_LOGS if l.get("id") == client_id]
 
     all_logs = []
@@ -693,50 +685,43 @@ def collate(client_id):
     all_logs.extend(sus_logs)
     return all_logs
 
+
 @app.route("/killprocess", methods=["POST"])
-def kill_process():   
-    data = request.get_json() 
+def kill_process():
+    data = request.get_json()
 
     client_id = data.get("client_id")
 
     target_ip = REGISTERED_CLIENTS.get(client_id).get("ip")
 
-    
     process_name = data.get("process_name")
 
-    send_data = {
-    "processName": process_name
-    }
+    send_data = {"processName": process_name}
 
-    response = response = requests.post(f"http://{target_ip}:5555/killprocess",json=send_data)
+    response = response = requests.post(
+        f"http://{target_ip}:5555/killprocess", json=send_data
+    )
     return jsonify({"response": response})
 
 
-
 @app.route("/deletefile", methods=["POST"])
-def delete_file():   
-    data = request.get_json() 
+def delete_file():
+    data = request.get_json()
 
     client_id = data.get("client_id")
 
     target_ip = REGISTERED_CLIENTS.get(client_id).get("ip")
 
-    
     location = data.get("location")
 
     recurse = data.get("recurse")
 
-    send_data = {
-    "location": location,
-    "recurse": recurse
-    }
+    send_data = {"location": location, "recurse": recurse}
 
-    response = response = requests.post(f"http://{target_ip}:5555/deletefile",json=send_data)
+    response = response = requests.post(
+        f"http://{target_ip}:5555/deletefile", json=send_data
+    )
     return jsonify({"response": response})
-
-
-
-
 
 
 def forward_to_client(client_id, endpoint, payload):
