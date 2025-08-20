@@ -14,10 +14,15 @@ export default function Endpoints() {
   const [clients, setClients] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/clients")
-      .then((response) => response.json())
-      .then((json) => setClients(json || []))
-      .catch((error) => console.error("Failed to fetch clients:", error));
+    const getClients = async () => {
+      fetch("http://localhost:5000/api/clients")
+        .then((response) => response.json())
+        .then((json) => setClients(json || []))
+        .catch((error) => console.error("Failed to fetch clients:", error));
+    };
+    getClients();
+    const interval = setInterval(getClients, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   return (

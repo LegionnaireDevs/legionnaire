@@ -8,7 +8,6 @@ export default function Logs() {
       try {
         const res = await fetch("http://localhost:5000/api/logs");
         const data = await res.json();
-        console.log(data);
         setResults(data || []);
       } catch (err) {
         console.error("Error fetching logs:", err);
@@ -46,7 +45,6 @@ export default function Logs() {
       </div>
 
       <div className="w-full max-w-7xl mx-auto px-6 pb-6 flex-1 flex flex-col min-h-0">
-        
         <div className="flex-shrink-0 bg-black/20 backdrop-blur-lg rounded-t-xl border border-b-0 border-white/10">
           <table className="w-full table-fixed">
             <thead className="bg-gradient-to-r from-purple-600/30 to-blue-600/30">
@@ -87,7 +85,9 @@ export default function Logs() {
                     </td>
 
                     <td className="w-3/12 px-6 py-4 align-top text-center">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border`}>
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border`}
+                      >
                         {log.os}
                       </span>
                     </td>
@@ -95,7 +95,10 @@ export default function Logs() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="3" className="px-6 py-4 text-center text-gray-400">
+                  <td
+                    colSpan="3"
+                    className="px-6 py-4 text-center text-gray-400"
+                  >
                     Loading system logs or no suspicious activity detected...
                   </td>
                 </tr>

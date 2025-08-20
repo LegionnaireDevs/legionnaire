@@ -37,77 +37,80 @@ export default function ProgramAnalysis() {
       <div className="absolute top-1/6 right-1/4 w-1.5 h-1.5 bg-white rounded-full animate-bounce delay-800"></div>
       <div className="absolute bottom-1/6 left-3/5 w-1 h-1 bg-white rounded-full animate-ping delay-600"></div>
 
-        <div className="w-full max-w-7xl mx-auto p-6 flex-shrink-0">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Program Analysis
-          </h1>
-          <p className="text-xl text-gray-300">
-            Hashes all running executables on client endpoints. Malicious hashes
-            will be displayed here.
-          </p>
+      <div className="w-full max-w-7xl mx-auto p-6 flex-shrink-0">
+        <h1 className="text-3xl font-bold text-white mb-2">Program Analysis</h1>
+        <p className="text-xl text-gray-300">
+          Hashes all running executables on client endpoints. Malicious hashes
+          will be displayed here.
+        </p>
+      </div>
+
+      <div className="w-full max-w-7xl mx-auto px-6 pb-6 flex-1 flex flex-col min-h-0">
+        <div className="flex-shrink-0 bg-black/20 backdrop-blur-lg rounded-t-xl border border-b-0 border-white/10">
+          <table className="w-full table-fixed">
+            <thead className="bg-gradient-to-r from-purple-600/30 to-blue-600/30">
+              <tr>
+                <th className="w-1/12 px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                  ID
+                </th>
+                <th className="w-4/12 px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                  Hash
+                </th>
+                <th className="w-5/12 px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                  Results
+                </th>
+                <th className="w-2/12 px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
+                  Received At
+                </th>
+              </tr>
+            </thead>
+          </table>
         </div>
 
-        <div className="w-full max-w-7xl mx-auto px-6 pb-6 flex-1 flex flex-col min-h-0">
-          <div className="flex-shrink-0 bg-black/20 backdrop-blur-lg rounded-t-xl border border-b-0 border-white/10">
-            <table className="w-full table-fixed">
-              <thead className="bg-gradient-to-r from-purple-600/30 to-blue-600/30">
-                <tr>
-                  <th className="w-1/12 px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
-                    ID
-                  </th>
-                  <th className="w-4/12 px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
-                    Hash
-                  </th>
-                  <th className="w-5/12 px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
-                    Results
-                  </th>
-                  <th className="w-2/12 px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">
-                    Received At
-                  </th>
-                </tr>
-              </thead>
-            </table>
-          </div>
-
-          <div className="overflow-y-auto flex-grow bg-black/20 backdrop-blur-lg rounded-b-xl border border-t-0 border-white/10">
-            <table className="w-full table-fixed">
-              <tbody className="divide-y divide-white/10">
-                {results.length > 0 ? (
-                  results.map((log, index) => (
-                    <tr
-                      key={index}
-                      className="hover:bg-white/5 transition-colors duration-200 group"
-                    >
+        <div className="overflow-y-auto flex-grow bg-black/20 backdrop-blur-lg rounded-b-xl border border-t-0 border-white/10">
+          <table className="w-full table-fixed">
+            <tbody className="divide-y divide-white/10">
+              {results.length > 0 ? (
+                results.map((log, index) => (
+                  <tr
+                    key={index}
+                    className="hover:bg-white/5 transition-colors duration-200 group"
+                  >
                     <td className="w-1/12 px-6 py-4 align-top">
                       <div className="text-white text-sm font-bold">
                         {log.id}
                       </div>
                     </td>
-                      <td className="w-4/12 px-6 py-4 align-top font-mono text-sm text-white group-hover:text-blue-300 transition-colors break-all">
-                        {log.hash}
-                      </td>
-                      <td className="w-5/12 px-6 py-4 align-top text-white font-medium group-hover:text-blue-300 transition-colors">
-                        <div className="mb-2">{log.results.description}</div>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border`}>
-                          Threat Level: {log.results.threat_level}
-                        </span>
-                      </td>
-                      <td className="w-2/12 px-6 py-4 align-top text-white font-medium group-hover:text-blue-300 transition-colors">
-                        {new Date(log.received_at).toLocaleString()}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="4" className="px-6 py-4 text-center text-gray-400">
-                      No processes running to hash currently...
+                    <td className="w-4/12 px-6 py-4 align-top font-mono text-sm text-white group-hover:text-blue-300 transition-colors break-all">
+                      {log.hash}
+                    </td>
+                    <td className="w-5/12 px-6 py-4 align-top text-white font-medium group-hover:text-blue-300 transition-colors">
+                      <div className="mb-2">{log.results.description}</div>
+                      <span
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border`}
+                      >
+                        Threat Level: {log.results.threat_level}
+                      </span>
+                    </td>
+                    <td className="w-2/12 px-6 py-4 align-top text-white font-medium group-hover:text-blue-300 transition-colors">
+                      {new Date(log.received_at).toLocaleString()}
                     </td>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="4"
+                    className="px-6 py-4 text-center text-gray-400"
+                  >
+                    No processes running to hash currently...
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
+    </div>
   );
 }

@@ -127,6 +127,37 @@ def receive_csv():
     return jsonify({"ok": True, "saved": saved}), 201
 
 
+@app.get("/api/network-stats")
+def get_network_stats():
+    """
+    Calculates and returns statistics about network flows, categorizing them
+    as 'OK' or 'Suspicious'.
+    """
+    try:
+        all_flow_files = list(NET_FLOWS.glob("*.csv"))
+        if not all_flow_files:
+            return jsonify({"ok_logs": 0, "suspicious_logs": 0})
+
+        # Combine all flow data into a single DataFrame
+        all_dfs = [pd.read_csv(f) for f in all_flow_files]
+        combined_df = pd.concat(all_dfs, ignore_index=True)
+
+        total_logs = len(combined_df)
+        suspicious_logs = 0
+
+        # Assumption: A 'Label' column exists and logs are suspicious if the label is not 'BENIGN'.
+        if "Label" in combined_df.columns:
+            suspicious_logs = len(combined_df[combined_df["Label"] != "BENIGN"])
+
+        ok_logs = total_logs - suspicious_logs
+
+        return jsonify({"ok_logs": ok_logs, "suspicious_logs": suspicious_logs})
+
+    except Exception as e:
+        app.logger.exception(f"Error getting network stats: {e}")
+        return jsonify({"ok": False, "error": "An internal error occurred."}), 500
+
+
 @app.get("/api/flows")
 def get_flows():
     """
