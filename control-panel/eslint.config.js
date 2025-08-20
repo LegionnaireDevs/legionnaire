@@ -1,29 +1,21 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import { defineConfig, globalIgnores } from 'eslint/config'
+import globals from "globals";
+import pluginJs from "@eslint/js";
+import pluginReactConfig from "eslint-plugin-react/configs/recommended.js";
+import googleConfig from "eslint-config-google";
+import prettierConfig from "eslint-config-prettier";
+import prettierPlugin from "eslint-plugin-prettier/recommended";
 
-export default defineConfig([
-  globalIgnores(['dist']),
+export default [
+  { languageOptions: { globals: globals.browser } },
+  pluginJs.configs.recommended,
+  pluginReactConfig,
+  googleConfig,
+  prettierConfig,
+  prettierPlugin,
   {
-    files: ['**/*.{js,jsx}'],
-    extends: [
-      js.configs.recommended,
-      reactHooks.configs['recommended-latest'],
-      reactRefresh.configs.vite,
-    ],
-    languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        ecmaFeatures: { jsx: true },
-        sourceType: 'module',
-      },
-    },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      "require-jsdoc": "off",
+      "valid-jsdoc": "off",
     },
   },
-])
+];

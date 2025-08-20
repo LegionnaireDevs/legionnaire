@@ -17,7 +17,7 @@ export default function Navbar() {
   const links = [
     { name: "Home", path: "/" },
     { name: "Dashboard", path: "/dashboard" },
-    { name: "About", path: "/about"}
+    { name: "About", path: "/about" },
   ];
 
   return (
@@ -27,7 +27,10 @@ export default function Navbar() {
           {/* Left: Logo + links. */}
           <div className="flex items-center space-x-8">
             {/* Logo */}
-            <NavLink to="/" className="text-2xl font-bold tracking-tight !text-white">
+            <NavLink
+              to="/"
+              className="text-2xl font-bold tracking-tight !text-white"
+            >
               Legionnaire.
             </NavLink>
 
