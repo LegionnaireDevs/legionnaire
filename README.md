@@ -44,7 +44,35 @@ rules, killing processes, and deleting files.
 
 ## Demo
 
-[demo.webm](https://github.com/user-attachments/assets/4b7f2210-622f-4865-aede-7bf9280954f2)
+Here's a short demo of the Web-Dashboard in action:
+
+
+https://github.com/user-attachments/assets/aa7a39b1-99ff-4f9d-a14c-51eef5a06c3e
+
+
+
+#### Per Page Module Overview
+
+Graphing and General Statistics:
+![Dashboard Stats](https://cdn.statically.io/gh/smp46/smp46.me/main/public/assets/legionnaire/dash_stats.webp)
+
+Program Analysis Logs:
+![Program Analysis](https://cdn.statically.io/gh/smp46/smp46.me/main/public/assets/legionnaire/dash_prog.webp)
+
+Network Analysis Logs:
+![Network Analysis](https://cdn.statically.io/gh/smp46/smp46.me/main/public/assets/legionnaire/dash_net.webp)
+
+System Logs Analysis Logs:
+![System Logs](https://cdn.statically.io/gh/smp46/smp46.me/main/public/assets/legionnaire/dash_logs.webp)
+
+Endpoint (Client) Management:
+![Endpoint Management](https://cdn.statically.io/gh/smp46/smp46.me/main/public/assets/legionnaire/dash_endpoints.webp)
+
+Client Specific Logs and Actions:
+
+![Client Logs](https://cdn.statically.io/gh/smp46/smp46.me/main/public/assets/legionnaire/dash_client.webp)
+
+
 
 
 ## API Reference
