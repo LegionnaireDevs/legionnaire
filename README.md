@@ -41,15 +41,11 @@ rules, killing processes, and deleting files.
 - [@Lachlan](https://github.com/Lachlanoc)
 - [@Brandon](https://github.com/Bangu7)
 
-## Badges
-
-[![Github All Releases](https://img.shields.io/github/downloads/LegionnaireDevs/legionnaire/total.svg)]()
-
-[![Github All Releases](https://img.shields.io/badge/version%201.1-345eeb)]()
 
 ## Demo
 
-Insert gif or link to demo
+[demo.webm](https://github.com/user-attachments/assets/4b7f2210-622f-4865-aede-7bf9280954f2)
+
 
 ## API Reference
 
@@ -63,8 +59,4 @@ Insert gif or link to demo
 
 <https://github.com/ossec/ossec-hids/blob/f6502012b7380208db81f82311ad4a1994d39905/etc/rules/syslog_rules.xml>
 
-#### AI Usage
 
-For this project we used LLMs to generate large portions of website code and design.
-Additionally it was used in debugging code and network errors.
-We used ChatGPT and Claude Sonnet.
