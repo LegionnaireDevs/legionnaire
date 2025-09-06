@@ -1,8 +1,12 @@
 import platform
 import os
 import subprocess
+import psutil
+import shutil
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import ipaddress
+
 
 app = Flask(__name__)
 CORS(app)
@@ -20,20 +24,16 @@ def KillProcess(processName):
     """
     Kills a process based on name.
     """
-    userOS = platform.system()
     try:
-        if userOS == "Linux":
-            cmd = f"pkill {processName}"
-            subprocess.run(cmd, shell=True, check=True)
-        elif userOS == "Windows":
-            cmd = f"Stop-Process -Name {processName} -Force"
-            subprocess.run(["powershell", "-Command", cmd], check=True)
-        elif userOS == "Darwin":
-            cmd = f"pkill {processName}"
-            subprocess.run(cmd, shell=True, check=True)
+        killed = False
+        for proc in psutil.process_iter(['name']):
+            if proc.info['name'] == processName:
+                proc.kill()
+                killed = True
+        if killed:
+            return f"Successfully killed process: {processName}"
         else:
-            return f"Unsupported OS: {userOS}"
-        return f"Successfully sent kill command for process: {processName}"
+            return f"No process named '{processName}' found."
     except Exception as e:
         return f"Error killing process '{processName}': {e}"
 
@@ -49,26 +49,15 @@ def ApiDeleteFile():
 
 def DeleteFile(location, recurse):
     """
-    Deletes a file at location.
+    Deletes a file or directory at location.
     """
-    userOS = platform.system()
     if not os.path.exists(location):
         return InvalidMessage("path file", location)
-
-    if recurse:
-        cmd = f"rm -r {location}"
-    else:
-        cmd = f"rm {location}"
-
     try:
-        if userOS in ["Linux", "Darwin"]:
-            subprocess.run(cmd, shell=True, check=True)
-        elif userOS == "Windows":
-            if recurse:
-                ps_cmd = f"Remove-Item -Path '{location}' -Recurse -Force"
-            else:
-                ps_cmd = f"Remove-Item -Path '{location}' -Force"
-            subprocess.run(["powershell", "-Command", ps_cmd], check=True)
+        if recurse and os.path.isdir(location):
+            shutil.rmtree(location)
+        else:
+            os.remove(location)
         return f"Successfully deleted: {location}"
     except Exception as e:
         return f"Error deleting '{location}': {e}"
@@ -87,28 +76,67 @@ def ApiCreateFirewallRule():
     return jsonify({"response": response})
 
 
+def VerifyIP(ip):
+    try:
+        ipaddress.ip_address(ip)
+        return True
+    except Exception:
+        return False
+
+
+def VerifyPort(port):
+    try:
+        port = int(port)
+        return 1 <= port <= 65535
+    except Exception:
+        return False
+
+
+def NonEmpty(s):
+    return isinstance(s, str) and bool(s.strip())
+
+
 def CreateFirewallRule(direction, source, dest, action, port, protocol):
     """
     Allows the creation of firewall rules.
     """
     userOS = platform.system()
+    if not (NonEmpty(direction) and
+            NonEmpty(action) and
+            NonEmpty(protocol) and
+            VerifyIP(source) and
+            VerifyIP(dest) and
+            VerifyPort(port)):
+        return "Invalid firewall rule parameters."
     try:
         if userOS == "Linux":
             if not VerifyIptables(direction, action, protocol):
                 return "Invalid iptables parameters."
-            cmd = f"iptables -t filter -A {direction} -s {source} -d {dest} -p {protocol} --dport {port} -j {action}"
-            subprocess.run(cmd, shell=True, check=True)
+            cmd = [
+                "iptables", "-t", "filter", "-A", direction,
+                "-s", source, "-d", dest, "-p", protocol,
+                "--dport", str(port), "-j", action
+            ]
+            subprocess.run(cmd, check=True)
         elif userOS == "Windows":
             if not VerifyNetsh(direction, action, protocol):
                 return "Invalid netsh parameters."
-            cmd = f'netsh advfirewall firewall add rule name="Block-{dest}-{port}" dir={direction} action={action} protocol={protocol} remoteip={dest} localport={port}'
-            subprocess.run(cmd, shell=True, check=True)
+            cmd = [
+                "netsh", "advfirewall", "firewall", "add", "rule",
+                f'name=Block-{dest}-{port}',
+                f'dir={direction}',
+                f'action={action}',
+                f'protocol={protocol}',
+                f'remoteip={dest}',
+                f'localport={port}'
+            ]
+            subprocess.run(cmd, check=True)
         elif userOS == "Darwin":
             rule = f"{action} proto {protocol} from {source} to {dest} port {port}"
             with open("/tmp/pf_rule.conf", "w") as f:
                 f.write(f"{rule}\n")
-            subprocess.run("sudo pfctl -f /tmp/pf_rule.conf", shell=True, check=True)
-            subprocess.run("sudo pfctl -e", shell=True, check=True)
+            subprocess.run(["sudo", "pfctl", "-f", "/tmp/pf_rule.conf"], check=True)
+            subprocess.run(["sudo", "pfctl", "-e"], check=True)
         else:
             return f"Unsupported OS: {userOS}"
         return f"Firewall rule for {dest} successfully created."
@@ -134,21 +162,35 @@ def DeleteFirewallRule(direction, source, dest, action, port, protocol):
     Deletes an existing firewall rule.
     """
     userOS = platform.system()
+    if not (NonEmpty(direction) and
+            NonEmpty(action) and
+            NonEmpty(protocol) and
+            VerifyIP(source) and
+            VerifyIP(dest) and
+            VerifyPort(port)):
+        return "Invalid firewall rule parameters."
     try:
         if userOS == "Linux":
             if not VerifyIptables(direction, action, protocol):
                 return "Invalid iptables parameters."
-            cmd = f"iptables -t filter -D {direction} -s {source} -d {dest} -p {protocol} --dport {port} -j {action}"
-            subprocess.run(cmd, shell=True, check=True)
+            cmd = [
+                "iptables", "-t", "filter", "-D", direction,
+                "-s", source, "-d", dest, "-p", protocol,
+                "--dport", str(port), "-j", action
+            ]
+            subprocess.run(cmd, check=True)
         elif userOS == "Windows":
             if not VerifyNetsh(direction, action, protocol):
                 return "Invalid netsh parameters."
-            cmd = f'netsh advfirewall firewall delete rule name="Block-{dest}-{port}"'
-            subprocess.run(cmd, shell=True, check=True)
+            cmd = [
+                "netsh", "advfirewall", "firewall", "delete", "rule",
+                f'name=Block-{dest}-{port}'
+            ]
+            subprocess.run(cmd, check=True)
         elif userOS == "Darwin":
             with open("/tmp/pf_rule.conf", "w") as f:
                 f.write("")
-            subprocess.run("sudo pfctl -f /tmp/pf_rule.conf", shell=True, check=True)
+            subprocess.run(["sudo", "pfctl", "-f", "/tmp/pf_rule.conf"], check=True)
         else:
             return f"Unsupported OS: {userOS}"
         return f"Firewall rule for {dest} successfully deleted."
